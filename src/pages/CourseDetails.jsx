@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   Search,
   PlayCircle,
@@ -18,63 +18,95 @@ import {
   Link2,
   CheckCircle2,
 } from "lucide-react";
+import api from "../services/api";
+import { isAuthenticated } from "../services/authService";
 import "../styles/coursedetails.css";
-
-const COURSE = {
-  category: "Cream Making",
-  title: "Beginner Cream Making Masterclass",
-  instructor: {
-    name: "Sarah Johnson",
-    title: "Expert Cream Formulator",
-    initials: "SJ",
-  },
-  rating: 4.9,
-  reviews: 120,
-  students: 1245,
-  price: 49.99,
-  description:
-    "Learn the fundamentals of cream making. This course is perfect for beginners who want to start their journey in skincare product formulation.",
-  lessons: 12,
-  quizzes: 4,
-  gallery: [
-    "https://picsum.photos/seed/cream-hero/700/500",
-    "https://picsum.photos/seed/cream-thumb-1/200/150",
-    "https://picsum.photos/seed/cream-thumb-2/200/150",
-    "https://picsum.photos/seed/cream-thumb-3/200/150",
-    "https://picsum.photos/seed/cream-thumb-4/200/150",
-  ],
-  includes: [
-    { icon: BookOpen, label: "12 Video Lessons" },
-    { icon: HelpCircle, label: "4 Quizzes" },
-    { icon: FileText, label: "Course Materials" },
-    { icon: Award, label: "Certificate of Completion" },
-    { icon: InfinityIcon, label: "Lifetime Access" },
-    { icon: Smartphone, label: "Access on Mobile & TV" },
-  ],
-  aboutBullets: [
-    "Understand the basic ingredients used in cream formulation",
-    "Learn how to balance oils, emulsifiers, and actives",
-    "Formulate a stable, skin-friendly cream from scratch",
-    "Package and label your finished product like a pro",
-  ],
-  curriculum: [
-    { section: "Getting Started", lessons: 3, duration: "24 min" },
-    { section: "Choosing Your Ingredients", lessons: 4, duration: "41 min" },
-    { section: "Formulating Your First Cream", lessons: 3, duration: "38 min" },
-    {
-      section: "Packaging & Finishing Touches",
-      lessons: 2,
-      duration: "19 min",
-    },
-  ],
-};
 
 const TABS = ["Overview", "Curriculum", "Instructor", "Reviews"];
 
 export default function CourseDetails() {
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Overview");
-  const [activeImage, setActiveImage] = useState(COURSE.gallery[0]);
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [activeImage, setActiveImage] = useState("");
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollMessage, setEnrollMessage] = useState("");
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await api.get(`/courses/${courseId}`);
+        setCourse(response.data.course);
+        setActiveImage(response.data.course?.image || "");
+      } catch (err) {
+        console.error("Failed to fetch course:", err);
+        setError(
+          err.response?.data?.message ||
+            "Failed to load course. Please try again.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourse();
+  }, [courseId]);
+
+  const handleEnroll = async () => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
+
+    setEnrolling(true);
+    setEnrollMessage("");
+
+    try {
+      const response = await api.post(`/learning/enroll/${courseId}`);
+      setEnrollMessage(response.data.message || "Successfully enrolled!");
+      setTimeout(() => {
+        setEnrollMessage("");
+      }, 3000);
+    } catch (err) {
+      console.error("Enrollment failed:", err);
+      setEnrollMessage(
+        err.response?.data?.message || "Failed to enroll. Please try again.",
+      );
+      setTimeout(() => {
+        setEnrollMessage("");
+      }, 3000);
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="cd-page">
+        <p>Loading course...</p>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="cd-page">
+        <p>{error}</p>
+      </div>
+    );
+  if (!course)
+    return (
+      <div className="cd-page">
+        <p>Course not found.</p>
+      </div>
+    );
+
+  const gallery = [course.image, ...(course.gallery || [])].filter(Boolean);
+  const displayImage =
+    activeImage || course.image || "https://picsum.photos/seed/course/700/500";
 
   return (
     <div className="cd-page">
@@ -119,18 +151,36 @@ export default function CourseDetails() {
       <div className="cd-body">
         {/* Breadcrumb */}
         <p className="cd-breadcrumb">
-          <Link to="/">Home</Link> <span>›</span>{" "}
+          <Link to="/student/dashboard">Dashboard</Link> <span>›</span>{" "}
           <Link to="/courses">Courses</Link> <span>›</span>{" "}
-          <span>{COURSE.title}</span>
+          <span>{course.title}</span>
         </p>
+
+        {/* Enroll message */}
+        {enrollMessage && (
+          <div
+            style={{
+              marginBottom: "16px",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              background: enrollMessage.includes("Success")
+                ? "#f0fdf4"
+                : "#fef2f2",
+              color: enrollMessage.includes("Success") ? "#15803d" : "#b91c1c",
+              fontSize: "14px",
+            }}
+          >
+            {enrollMessage}
+          </div>
+        )}
 
         <div className="cd-layout">
           {/* Left: gallery + tabs */}
           <div className="cd-main">
             <div className="cd-gallery">
               <div className="cd-gallery__hero">
-                <img src={activeImage} alt={COURSE.title} />
-                {activeImage === COURSE.gallery[0] && (
+                <img src={displayImage} alt={course.title} />
+                {gallery.length > 0 && (
                   <button
                     className="cd-gallery__play"
                     aria-label="Play preview video"
@@ -141,13 +191,13 @@ export default function CourseDetails() {
               </div>
 
               <div className="cd-gallery__thumbs">
-                {COURSE.gallery.slice(1).map((src, i) => (
+                {gallery.slice(1, 5).map((src, i) => (
                   <button
                     key={i}
                     className={`cd-gallery__thumb ${activeImage === src ? "cd-gallery__thumb--active" : ""}`}
                     onClick={() => setActiveImage(src)}
                   >
-                    <img src={src} alt={`${COURSE.title} preview ${i + 1}`} />
+                    <img src={src} alt={`${course.title} preview ${i + 1}`} />
                   </button>
                 ))}
               </div>
@@ -162,7 +212,7 @@ export default function CourseDetails() {
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab}
-                  {tab === "Reviews" && ` (${COURSE.reviews})`}
+                  {tab === "Reviews" && ` (${course.reviews || 0})`}
                 </button>
               ))}
             </div>
@@ -171,13 +221,9 @@ export default function CourseDetails() {
               {activeTab === "Overview" && (
                 <div>
                   <h2>About This Course</h2>
-                  <p className="cd-tab-panel__lead">
-                    This comprehensive course will teach you everything you need
-                    to know about creating high-quality creams for various skin
-                    types.
-                  </p>
+                  <p className="cd-tab-panel__lead">{course.description}</p>
                   <ul className="cd-checklist">
-                    {COURSE.aboutBullets.map((bullet) => (
+                    {course.aboutBullets?.map((bullet) => (
                       <li key={bullet}>
                         <CheckCircle2 size={16} />
                         <span>{bullet}</span>
@@ -191,7 +237,7 @@ export default function CourseDetails() {
                 <div>
                   <h2>Course Curriculum</h2>
                   <ul className="cd-curriculum">
-                    {COURSE.curriculum.map((section) => (
+                    {course.curriculum?.map((section) => (
                       <li key={section.section}>
                         <span className="cd-curriculum__name">
                           {section.section}
@@ -208,17 +254,16 @@ export default function CourseDetails() {
               {activeTab === "Instructor" && (
                 <div className="cd-instructor-panel">
                   <span className="cd-avatar cd-avatar--lg">
-                    {COURSE.instructor.initials}
+                    {course.instructor?.name?.charAt(0) || "T"}
                   </span>
                   <div>
-                    <h2>{COURSE.instructor.name}</h2>
+                    <h2>{course.instructor?.name || "Tutor"}</h2>
                     <p className="cd-tab-panel__lead">
-                      {COURSE.instructor.title}
+                      {course.instructor?.title || "Course Instructor"}
                     </p>
                     <p>
-                      Sarah has over 10 years of experience formulating skincare
-                      products and has taught thousands of students the
-                      fundamentals of cream making.
+                      {course.instructor?.bio ||
+                        "Experienced instructor teaching this course."}
                     </p>
                   </div>
                 </div>
@@ -228,8 +273,8 @@ export default function CourseDetails() {
                 <div>
                   <h2>Student Reviews</h2>
                   <p className="cd-tab-panel__lead">
-                    {COURSE.rating.toFixed(1)} average rating from{" "}
-                    {COURSE.reviews} reviews.
+                    {course.rating?.toFixed(1) || "0.0"} average rating from{" "}
+                    {course.reviews || 0} reviews.
                   </p>
                 </div>
               )}
@@ -239,17 +284,19 @@ export default function CourseDetails() {
           {/* Right: purchase card + includes + share */}
           <aside className="cd-sidebar">
             <div className="cd-purchase-card">
-              <span className="cd-tag">{COURSE.category}</span>
-              <h1 className="cd-title">{COURSE.title}</h1>
+              <span className="cd-tag">{course.category}</span>
+              <h1 className="cd-title">{course.title}</h1>
 
               <div className="cd-instructor-row">
-                <span className="cd-avatar">{COURSE.instructor.initials}</span>
+                <span className="cd-avatar">
+                  {course.instructor?.name?.charAt(0) || "T"}
+                </span>
                 <div>
                   <p className="cd-instructor-row__name">
-                    {COURSE.instructor.name}
+                    {course.instructor?.name || "Tutor"}
                   </p>
                   <p className="cd-instructor-row__title">
-                    {COURSE.instructor.title}
+                    {course.instructor?.title || "Course Instructor"}
                   </p>
                 </div>
               </div>
@@ -257,26 +304,26 @@ export default function CourseDetails() {
               <div className="cd-meta-row">
                 <span className="cd-meta-row__rating">
                   <Star size={14} fill="#FACC15" stroke="#FACC15" />
-                  {COURSE.rating.toFixed(1)}{" "}
+                  {course.rating?.toFixed(1) || "0.0"}{" "}
                   <span className="cd-meta-row__muted">
-                    ({COURSE.reviews} Reviews)
+                    ({course.reviews || 0} Reviews)
                   </span>
                 </span>
                 <span className="cd-meta-row__students">
                   <Users size={14} />
-                  {COURSE.students.toLocaleString()} Students
+                  {course.students?.toLocaleString() || 0} Students
                 </span>
               </div>
 
-              <p className="cd-price">${COURSE.price.toFixed(2)}</p>
-              <p className="cd-description">{COURSE.description}</p>
+              <p className="cd-price">${course.price?.toFixed(2) || "0.00"}</p>
+              <p className="cd-description">{course.description}</p>
 
               <div className="cd-quick-facts">
                 <span>
-                  <BookOpen size={14} /> {COURSE.lessons} Lessons
+                  <BookOpen size={14} /> {course.lessons || 0} Lessons
                 </span>
                 <span>
-                  <HelpCircle size={14} /> {COURSE.quizzes} Quizzes
+                  <HelpCircle size={14} /> {course.quizzes || 0} Quizzes
                 </span>
                 <span>
                   <Award size={14} /> Certificate
@@ -287,8 +334,12 @@ export default function CourseDetails() {
               </div>
 
               <div className="cd-cta-row">
-                <button className="cd-btn cd-btn--primary cd-btn--full">
-                  Enroll Now
+                <button
+                  className="cd-btn cd-btn--primary cd-btn--full"
+                  onClick={handleEnroll}
+                  disabled={enrolling}
+                >
+                  {enrolling ? "Enrolling..." : "Enroll Now"}
                 </button>
                 <button className="cd-btn cd-btn--outline cd-btn--full">
                   <Heart size={16} /> Add to Wishlist
@@ -299,7 +350,7 @@ export default function CourseDetails() {
             <div className="cd-side-card">
               <h3>Course Includes</h3>
               <ul className="cd-includes-list">
-                {COURSE.includes.map(({ icon: Icon, label }) => (
+                {course.includes?.map(({ icon: Icon, label }) => (
                   <li key={label}>
                     <Icon size={16} />
                     <span>{label}</span>

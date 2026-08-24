@@ -1,79 +1,18 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, Star, ChevronDown } from "lucide-react";
-import "../styles/courses.css";
+import api from "../services/api";
+import "../pages/courses.css";
 
-const CATEGORIES = ["Cream Making", "Soap Making", "Perfume Making"];
-const LEVELS = ["Beginner", "Intermediate", "Advanced"];
-
-const COURSES = [
-  {
-    id: "c1",
-    title: "Beginner Cream Making Masterclass",
-    category: "Cream Making",
-    level: "Beginner",
-    instructor: "Sarah Johnson",
-    rating: 4.8,
-    reviews: 100,
-    price: 49.99,
-    image: "https://picsum.photos/seed/cream-jar-1/400/300",
-  },
-  {
-    id: "c2",
-    title: "Natural Soap Making From Scratch",
-    category: "Soap Making",
-    level: "Beginner",
-    instructor: "Michael Brown",
-    rating: 4.7,
-    reviews: 98,
-    price: 39.99,
-    image: "https://picsum.photos/seed/soap-bars-1/400/300",
-  },
-  {
-    id: "c3",
-    title: "Perfume Making For Beginners",
-    category: "Perfume Making",
-    level: "Beginner",
-    instructor: "Emma Davis",
-    rating: 4.9,
-    reviews: 150,
-    price: 59.99,
-    image: "https://picsum.photos/seed/perfume-bottle-1/400/300",
-  },
-  {
-    id: "c4",
-    title: "Advanced Cream Formulation",
-    category: "Cream Making",
-    level: "Advanced",
-    instructor: "Sarah Johnson",
-    rating: 4.9,
-    reviews: 74,
-    price: 69.99,
-    image: "https://picsum.photos/seed/cream-jar-2/400/300",
-  },
-  {
-    id: "c5",
-    title: "Herbal Soap Making Advanced",
-    category: "Soap Making",
-    level: "Advanced",
-    instructor: "Michael Brown",
-    rating: 4.6,
-    reviews: 61,
-    price: 44.99,
-    image: "https://picsum.photos/seed/soap-bars-2/400/300",
-  },
-  {
-    id: "c6",
-    title: "Advanced Perfume Blending",
-    category: "Perfume Making",
-    level: "Advanced",
-    instructor: "Emma Davis",
-    rating: 4.9,
-    reviews: 112,
-    price: 79.99,
-    image: "https://picsum.photos/seed/perfume-bottle-2/400/300",
-  },
+const CATEGORIES = [
+  "Cream Making",
+  "Soap Making",
+  "Perfume Making",
+  "Baking",
+  "Chemical Making",
 ];
+
+const LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
 const SORT_OPTIONS = [
   { value: "popular", label: "Popular" },
@@ -83,54 +22,109 @@ const SORT_OPTIONS = [
 ];
 
 export default function Courses() {
+  const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("popular");
+
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedLevels, setSelectedLevels] = useState([]);
-  const [maxPrice, setMaxPrice] = useState(200);
 
-  const allCategories = selectedCategories.length === 0;
-  const allLevels = selectedLevels.length === 0;
-
-  const toggleCategory = (cat) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
-
-  const toggleLevel = (lvl) => {
-    setSelectedLevels((prev) =>
-      prev.includes(lvl) ? prev.filter((l) => l !== lvl) : [...prev, lvl]
-    );
-  };
-
-  const [appliedMaxPrice, setAppliedMaxPrice] = useState(200);
   const [appliedCategories, setAppliedCategories] = useState([]);
   const [appliedLevels, setAppliedLevels] = useState([]);
 
+  const [maxPrice, setMaxPrice] = useState(200);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState(200);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await api.get("/courses");
+
+        setCourses(response.data.courses || []);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+
+        setError(
+          err.response?.data?.message ||
+            "Failed to load courses. Please try again.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const toggleCategory = (category) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category],
+    );
+  };
+
+  const toggleLevel = (level) => {
+    setSelectedLevels((prev) =>
+      prev.includes(level)
+        ? prev.filter((item) => item !== level)
+        : [...prev, level],
+    );
+  };
+
   const applyFilters = () => {
-    setAppliedMaxPrice(maxPrice);
     setAppliedCategories(selectedCategories);
     setAppliedLevels(selectedLevels);
+    setAppliedMaxPrice(maxPrice);
   };
 
   const filteredCourses = useMemo(() => {
-    let list = COURSES.filter((course) => {
-      const matchesSearch = course.title.toLowerCase().includes(search.toLowerCase());
+    let list = courses.filter((course) => {
+      const title = course.title?.toLowerCase() || "";
+      const category = course.category || "";
+      const level = course.level || "";
+
+      const matchesSearch = title.includes(search.toLowerCase());
+
       const matchesCategory =
-        appliedCategories.length === 0 || appliedCategories.includes(course.category);
+        appliedCategories.length === 0 || appliedCategories.includes(category);
+
       const matchesLevel =
-        appliedLevels.length === 0 || appliedLevels.includes(course.level);
-      const matchesPrice = course.price <= appliedMaxPrice;
+        appliedLevels.length === 0 || appliedLevels.includes(level);
+
+      const matchesPrice = Number(course.price || 0) <= appliedMaxPrice;
+
       return matchesSearch && matchesCategory && matchesLevel && matchesPrice;
     });
 
-    if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
-    else if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
-    else if (sort === "rating") list = [...list].sort((a, b) => b.rating - a.rating);
+    if (sort === "price-asc") {
+      list = [...list].sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sort === "price-desc") {
+      list = [...list].sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else if (sort === "rating") {
+      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else {
+      list = [...list].sort((a, b) => (b.students || 0) - (a.students || 0));
+    }
 
     return list;
-  }, [search, sort, appliedCategories, appliedLevels, appliedMaxPrice]);
+  }, [
+    courses,
+    search,
+    sort,
+    appliedCategories,
+    appliedLevels,
+    appliedMaxPrice,
+  ]);
+
+  const allCategories = selectedCategories.length === 0;
+  const allLevels = selectedLevels.length === 0;
 
   return (
     <div className="courses-page">
@@ -145,15 +139,22 @@ export default function Courses() {
           <Link to="/" className="courses-nav__link">
             Home
           </Link>
-          <Link to="/courses" className="courses-nav__link courses-nav__link--active">
+
+          <Link
+            to="/courses"
+            className="courses-nav__link courses-nav__link--active"
+          >
             Courses
           </Link>
+
           <Link to="/tutors" className="courses-nav__link">
             Tutors
           </Link>
+
           <Link to="/about" className="courses-nav__link">
             About Us
           </Link>
+
           <Link to="/contact" className="courses-nav__link">
             Contact
           </Link>
@@ -163,9 +164,11 @@ export default function Courses() {
           <button className="courses-icon-btn" aria-label="Search">
             <Search size={18} />
           </button>
+
           <Link to="/login" className="courses-btn courses-btn--ghost">
             Login
           </Link>
+
           <Link to="/register" className="courses-btn courses-btn--primary">
             Sign Up
           </Link>
@@ -176,18 +179,22 @@ export default function Courses() {
         {/* Header */}
         <div className="courses-header">
           <h1>All Courses</h1>
+
           <p className="courses-breadcrumb">
-            <Link to="/">Home</Link> <span>›</span> <span>Courses</span>
+            <Link to="/student/dashboard">Dashboard</Link>
+            <span>›</span>
+            <span>Courses</span>
           </p>
         </div>
 
         <div className="courses-layout">
-          {/* Sidebar filters */}
+          {/* Sidebar */}
           <aside className="courses-filters">
             <h2 className="courses-filters__title">Filters</h2>
 
             <div className="courses-filter-group">
               <h3>Category</h3>
+
               <label className="courses-checkbox">
                 <input
                   type="checkbox"
@@ -196,6 +203,7 @@ export default function Courses() {
                 />
                 All Categories
               </label>
+
               {CATEGORIES.map((cat) => (
                 <label className="courses-checkbox" key={cat}>
                   <input
@@ -210,6 +218,7 @@ export default function Courses() {
 
             <div className="courses-filter-group">
               <h3>Level</h3>
+
               <label className="courses-checkbox">
                 <input
                   type="checkbox"
@@ -218,6 +227,7 @@ export default function Courses() {
                 />
                 All Levels
               </label>
+
               {LEVELS.map((lvl) => (
                 <label className="courses-checkbox" key={lvl}>
                   <input
@@ -232,6 +242,7 @@ export default function Courses() {
 
             <div className="courses-filter-group">
               <h3>Price</h3>
+
               <input
                 type="range"
                 min={0}
@@ -242,13 +253,17 @@ export default function Courses() {
                 className="courses-range"
                 aria-label="Maximum price"
               />
+
               <div className="courses-range__labels">
                 <span>$0</span>
                 <span>${maxPrice}</span>
               </div>
             </div>
 
-            <button className="courses-btn courses-btn--primary courses-btn--full" onClick={applyFilters}>
+            <button
+              className="courses-btn courses-btn--primary courses-btn--full"
+              onClick={applyFilters}
+            >
               Apply Filters
             </button>
           </aside>
@@ -258,6 +273,7 @@ export default function Courses() {
             <div className="courses-toolbar">
               <div className="courses-search">
                 <Search size={16} />
+
                 <input
                   type="text"
                   placeholder="Search courses..."
@@ -268,25 +284,42 @@ export default function Courses() {
 
               <div className="courses-sort">
                 <span>Sort by:</span>
+
                 <div className="courses-sort__select">
-                  <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
                     ))}
                   </select>
+
                   <ChevronDown size={14} />
                 </div>
               </div>
             </div>
 
-            {filteredCourses.length === 0 ? (
-              <p className="courses-empty">No courses match your filters yet. Try adjusting them.</p>
-            ) : (
+            {/* Loading */}
+            {loading && <p className="courses-empty">Loading courses...</p>}
+
+            {/* Error */}
+            {!loading && error && <p className="courses-empty">{error}</p>}
+
+            {/* Empty */}
+            {!loading && !error && filteredCourses.length === 0 && (
+              <p className="courses-empty">
+                No courses match your filters yet. Try adjusting them.
+              </p>
+            )}
+
+            {/* Courses */}
+            {!loading && !error && filteredCourses.length > 0 && (
               <div className="courses-grid">
                 {filteredCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+                  <CourseCard key={course._id || course.id} course={course} />
                 ))}
               </div>
             )}
@@ -297,42 +330,76 @@ export default function Courses() {
   );
 }
 
-/* ---------- small presentational bits ---------- */
+/* ---------- Course Card ---------- */
 
 function CourseCard({ course }) {
+  const instructorName =
+    course.instructor?.name ||
+    course.instructor?.username ||
+    "SkillCraft Tutor";
+
   return (
-    <Link to={`/courses/${course.id}`} className="course-card">
+    <Link to={`/courses/${course._id || course.id}`} className="course-card">
       <div className="course-card__image-wrap">
-        <img src={course.image} alt={course.title} className="course-card__image" loading="lazy" />
+        <img
+          src={
+            course.image ||
+            "https://picsum.photos/seed/skillcraft-course/400/300"
+          }
+          alt={course.title}
+          className="course-card__image"
+          loading="lazy"
+        />
       </div>
 
       <div className="course-card__body">
         <span className="course-card__tag">{course.category}</span>
+
         <h3 className="course-card__title">{course.title}</h3>
 
         <div className="course-card__instructor">
-          <span className="course-card__avatar">{course.instructor.charAt(0)}</span>
-          <span>{course.instructor}</span>
+          <span className="course-card__avatar">
+            {instructorName.charAt(0).toUpperCase()}
+          </span>
+
+          <span>{instructorName}</span>
         </div>
 
         <div className="course-card__footer">
           <span className="course-card__rating">
             <Star size={14} fill="#FACC15" stroke="#FACC15" />
-            {course.rating.toFixed(1)}{" "}
-            <span className="course-card__reviews">({course.reviews})</span>
+
+            {(course.rating || 0).toFixed(1)}
+
+            <span className="course-card__reviews">
+              ({course.reviews || 0})
+            </span>
           </span>
-          <span className="course-card__price">${course.price.toFixed(2)}</span>
+
+          <span className="course-card__price">
+            ${(course.price || 0).toFixed(2)}
+          </span>
         </div>
       </div>
     </Link>
   );
 }
 
+/* ---------- Logo ---------- */
+
 function LogoMark() {
   return (
-    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 26 26"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path d="M13 1 L24 7 L13 13 L2 7 Z" fill="#9333EA" />
+
       <path d="M13 13 L24 7 V17 L13 23 Z" fill="#C084FC" />
+
       <path d="M13 13 L2 7 V17 L13 23 Z" fill="#7C3AED" />
     </svg>
   );
