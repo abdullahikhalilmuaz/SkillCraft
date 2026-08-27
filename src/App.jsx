@@ -19,6 +19,7 @@ import Quiz from "./pages/student/Quiz";
 import QuizResult from "./pages/student/QuizResult";
 import AIRecommendations from "./pages/student/AIRecommendations";
 import StudentProfile from "./pages/student/StudentProfile";
+import StudentQuizzes from "./pages/student/StudentQuizzes";
 
 // Tutor pages
 import TutorDashboard from "./pages/tutor/ToturDashboard";
@@ -64,6 +65,7 @@ function App() {
             element={<AIRecommendations />}
           />
           <Route path="/student/profile" element={<StudentProfile />} />
+          <Route path="/student/quizzes" element={<StudentQuizzes />} />
         </Route>
 
         {/* Tutor protected routes */}

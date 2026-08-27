@@ -168,21 +168,6 @@ export default function Login() {
                 {submitting ? "Logging in…" : "Login"}
               </button>
 
-              <div className="login-divider">
-                <div className="login-divider__line" />
-                <span className="login-divider__label">Or continue with</span>
-                <div className="login-divider__line" />
-              </div>
-
-              <div className="login-social-row">
-                <button type="button" className="login-social-btn">
-                  <GoogleIcon /> Google
-                </button>
-                <button type="button" className="login-social-btn">
-                  <FacebookIcon /> Facebook
-                </button>
-              </div>
-
               <p className="login-signup">
                 Don&apos;t have an account?{" "}
                 <Link to="/register">Sign up here</Link>

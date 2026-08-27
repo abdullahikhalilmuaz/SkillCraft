@@ -13,7 +13,12 @@
   --radius-md: 18px;
   --shadow-card: 0 10px 30px rgba(76, 29, 149, 0.06);
 
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--ink-900);
   background: var(--white);
   min-height: 100vh;
@@ -193,7 +198,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .lp-btn:hover {
@@ -415,5 +422,226 @@
   }
   .lp-lesson-actions .lp-btn--primary {
     order: 0;
+  }
+}
+
+/* ===== Notes Tab ===== */
+.lp-notes-tab {
+  padding: 8px 0;
+}
+
+.lp-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.lp-notes-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.lp-notes-saved {
+  font-size: 13px;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.lp-notes-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 150px;
+  transition: border-color 0.15s ease;
+}
+
+.lp-notes-textarea:focus {
+  outline: none;
+  border-color: #9333ea;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
+.lp-notes-saved-preview {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.lp-notes-saved-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+.lp-notes-saved-content {
+  font-size: 14px;
+  color: #1f2937;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* ===== Discussion Tab ===== */
+.lp-discussion-tab {
+  padding: 8px 0;
+}
+
+.lp-discussion-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.lp-discussion-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  transition: border-color 0.15s ease;
+}
+
+.lp-discussion-textarea:focus {
+  outline: none;
+  border-color: #9333ea;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+}
+
+.lp-discussion-send {
+  align-self: flex-end;
+  gap: 8px;
+}
+
+.lp-discussion-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.lp-discussion-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.lp-discussion-empty svg {
+  color: #d1d5db;
+  margin-bottom: 12px;
+}
+
+.lp-discussion-empty p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.lp-discussion-empty-sub {
+  font-size: 13px !important;
+  color: #9ca3af !important;
+  margin-top: 4px !important;
+}
+
+.lp-discussion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.lp-discussion-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+  position: relative;
+}
+
+.lp-discussion-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #9333ea;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.lp-discussion-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.lp-discussion-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.lp-discussion-author {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.lp-discussion-time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.lp-discussion-message {
+  font-size: 14px;
+  color: #374151;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.lp-discussion-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.lp-discussion-delete:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .lp-discussion-item {
+    flex-wrap: wrap;
+  }
+
+  .lp-discussion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
   }
 }

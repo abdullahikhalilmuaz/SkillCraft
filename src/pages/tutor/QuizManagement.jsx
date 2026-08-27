@@ -13,8 +13,14 @@ import {
   Bell,
   Trash2,
   X,
+  Menu,
+  LayoutDashboard,
+  BookOpen,
+  GraduationCap,
+  Settings,
 } from "lucide-react";
 import api from "../../services/api";
+import { getCurrentUser } from "../../services/authService";
 
 const filterTabs = ["All Quizzes", "Published", "Drafts"];
 
@@ -29,6 +35,13 @@ const emptyQuestion = () => ({
   options: ["", "", "", ""],
   answer: 0,
 });
+
+const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/tutor/dashboard" },
+  { icon: BookOpen, label: "My Courses", path: "/tutor/courses" },
+  { icon: ClipboardList, label: "Quizzes", path: "/tutor/quizzes", active: true },
+  { icon: GraduationCap, label: "Analytics", path: "/tutor/analytics" },
+];
 
 export default function QuizManagement() {
   const [quizzes, setQuizzes] = useState([]);
@@ -45,6 +58,8 @@ export default function QuizManagement() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userName, setUserName] = useState("Tutor");
 
   // Builder state
   const [formTitle, setFormTitle] = useState("");
@@ -52,6 +67,11 @@ export default function QuizManagement() {
   const [formPassMark, setFormPassMark] = useState(50);
   const [formQuestions, setFormQuestions] = useState([emptyQuestion()]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) setUserName(user.name || "Tutor");
+  }, []);
 
   // Fetch tutor's courses and their quizzes
   useEffect(() => {
@@ -85,54 +105,73 @@ export default function QuizManagement() {
 
         setLessons(allLessons);
 
-        // Note: Backend doesn't have GET /api/quizzes endpoint yet
-        // Using mock data for now - would be replaced with actual API call
-        const mockQuizzes = allLessons.map((lesson, index) => ({
-          id: `q-${index}`,
-          title: `${lesson.title} Quiz`,
-          lesson: lesson.title,
-          course: lesson.courseTitle,
-          questionCount: 5,
-          passMark: 60,
-          status: index % 2 === 0 ? "Published" : "Draft",
-          updated: new Date().toLocaleDateString(),
-          _id: `quiz-${index}`,
-        }));
+        // Fetch real quizzes from backend
+        try {
+          const quizzesRes = await api.get("/quizzes");
+          const fetchedQuizzes = quizzesRes.data.quizzes || [];
 
-        setQuizzes(mockQuizzes);
+          const formattedQuizzes = fetchedQuizzes.map((q) => ({
+            id: q._id,
+            title: q.title,
+            lesson: q.lesson?.title || "Lesson",
+            course: q.lesson?.course?.title || q.lesson?.course || "Course",
+            questionCount: q.questions?.length || 0,
+            passMark: q.passMark || 50,
+            status: "Published",
+            updated: new Date(q.createdAt).toLocaleDateString(),
+            _id: q._id,
+          }));
 
-        // Update stats
-        const totalQuizzes = mockQuizzes.length;
-        const totalQuestions = mockQuizzes.reduce(
-          (sum, q) => sum + q.questionCount,
-          0,
-        );
-        const avgPassMark =
-          totalQuizzes > 0
-            ? Math.round(
-                mockQuizzes.reduce((sum, q) => sum + q.passMark, 0) /
-                  totalQuizzes,
-              )
-            : 0;
+          setQuizzes(formattedQuizzes);
 
-        setStats([
-          {
-            icon: ClipboardList,
-            value: String(totalQuizzes),
-            label: "Total Quizzes",
-          },
-          {
-            icon: HelpCircle,
-            value: String(totalQuestions),
-            label: "Total Questions",
-          },
-          {
-            icon: Target,
-            value: `${avgPassMark}%`,
-            label: "Average Pass Mark",
-          },
-          { icon: ChevronRight, value: "0", label: "Attempts This Month" },
-        ]);
+          // Update stats with real data
+          const totalQuizzes = formattedQuizzes.length;
+          const totalQuestions = formattedQuizzes.reduce(
+            (sum, q) => sum + q.questionCount,
+            0,
+          );
+          const avgPassMark =
+            totalQuizzes > 0
+              ? Math.round(
+                  formattedQuizzes.reduce((sum, q) => sum + q.passMark, 0) /
+                    totalQuizzes,
+                )
+              : 0;
+
+          setStats([
+            {
+              icon: ClipboardList,
+              value: String(totalQuizzes),
+              label: "Total Quizzes",
+            },
+            {
+              icon: HelpCircle,
+              value: String(totalQuestions),
+              label: "Total Questions",
+            },
+            {
+              icon: Target,
+              value: `${avgPassMark}%`,
+              label: "Average Pass Mark",
+            },
+            { icon: ChevronRight, value: "0", label: "Attempts This Month" },
+          ]);
+        } catch (err) {
+          console.error("Failed to fetch quizzes:", err);
+          // Fallback to mock data if endpoint fails
+          const mockQuizzes = allLessons.map((lesson, index) => ({
+            id: `q-${index}`,
+            title: `${lesson.title} Quiz`,
+            lesson: lesson.title,
+            course: lesson.courseTitle,
+            questionCount: 5,
+            passMark: 60,
+            status: index % 2 === 0 ? "Published" : "Draft",
+            updated: new Date().toLocaleDateString(),
+            _id: `quiz-${index}`,
+          }));
+          setQuizzes(mockQuizzes);
+        }
       } catch (err) {
         console.error("Failed to fetch quiz data:", err);
         setError(err.response?.data?.message || "Failed to load quizzes.");
@@ -251,6 +290,8 @@ export default function QuizManagement() {
     setOpenMenuId(null);
   };
 
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+
   if (loading)
     return (
       <div className="qm-page">
@@ -266,213 +307,249 @@ export default function QuizManagement() {
 
   return (
     <div className="qm-page">
-      {/* Navbar */}
-      <header className="qm-navbar">
-        <div className="qm-navbar-left">
-          <span className="qm-logo-mark">◆</span>
-          <span className="qm-logo-text">SkillCraft</span>
-        </div>
+      {/* Mobile Menu Toggle */}
+      <button
+        className="qm-mobile-toggle"
+        onClick={toggleMobileMenu}
+        aria-label="Toggle menu"
+      >
+        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-        <nav className="qm-nav-links">
-          <Link to="/" className="qm-nav-link">
-            Home
-          </Link>
-          <Link to="/courses" className="qm-nav-link">
-            Courses
-          </Link>
-          <Link
-            to="/tutor/dashboard"
-            className="qm-nav-link qm-nav-link--active"
-          >
-            Tutors
-          </Link>
-          <Link to="/about" className="qm-nav-link">
-            About Us
-          </Link>
-          <Link to="/contact" className="qm-nav-link">
-            Contact
-          </Link>
-        </nav>
-
-        <div className="qm-navbar-right">
-          <button className="qm-icon-btn" aria-label="Search">
-            <Search size={18} />
-          </button>
-          <button className="qm-icon-btn" aria-label="Notifications">
-            <Bell size={18} />
-            <span className="qm-notif-dot" />
-          </button>
-          <Link to="/login" className="qm-btn qm-btn--ghost">
-            Login
-          </Link>
-          <Link to="/register" className="qm-btn qm-btn--primary">
-            Sign Up
-          </Link>
-        </div>
-      </header>
-
-      <main className="qm-main">
-        {/* Heading */}
-        <div className="qm-heading-row">
-          <div>
-            <h1>Quiz Management</h1>
-            <div className="qm-breadcrumb">
-              <Link to="/tutor/dashboard">Home</Link>
-              <ChevronRight size={14} />
-              <Link to="/tutor/dashboard">Tutor</Link>
-              <ChevronRight size={14} />
-              <span>Quizzes</span>
-            </div>
+      <div className="qm-page-layout">
+        {/* Sidebar */}
+        <aside className={`qm-sidebar ${mobileMenuOpen ? "qm-sidebar--open" : ""}`}>
+          <div className="qm-sidebar-logo">
+            <span className="qm-logo-mark">◆</span>
+            <span className="qm-logo-text">SkillCraft</span>
           </div>
-          <button className="qm-btn qm-btn--primary" onClick={openBuilder}>
-            <Plus size={16} />
-            Create Quiz
-          </button>
-        </div>
 
-        {/* Stats */}
-        <section className="qm-stats">
-          {stats.map(({ icon: Icon, value, label }) => (
-            <div className="qm-stat-card" key={label}>
-              <div className="qm-stat-icon">
-                <Icon size={20} />
-              </div>
-              <div>
-                <p className="qm-stat-value">{value}</p>
-                <p className="qm-stat-label">{label}</p>
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* Filter tabs + search */}
-        <div className="qm-toolbar">
-          <div className="qm-filter-tabs">
-            {filterTabs.map((tab) => (
-              <button
-                key={tab}
-                className={`qm-filter-tab ${activeFilter === tab ? "qm-filter-tab--active" : ""}`}
-                onClick={() => setActiveFilter(tab)}
+          <nav className="qm-sidebar-nav">
+            {navItems.map(({ icon: Icon, label, path, active }) => (
+              <Link
+                to={path}
+                key={label}
+                className={`qm-nav-item ${active ? "qm-nav-item--active" : ""}`}
+                onClick={() => setMobileMenuOpen(false)}
               >
-                {tab}
-              </button>
+                <Icon size={18} />
+                <span>{label}</span>
+              </Link>
             ))}
-          </div>
+          </nav>
 
-          <div className="qm-toolbar-right">
-            <div className="qm-search">
-              <Search size={15} className="qm-search-icon" />
-              <input
-                type="text"
-                placeholder="Search quizzes..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+          <div className="qm-sidebar-bottom">
+            <Link to="/student/profile" className="qm-nav-item">
+              <HelpCircle size={18} />
+              <span>Help & Support</span>
+            </Link>
+            <Link to="/student/profile" className="qm-nav-item">
+              <Settings size={18} />
+              <span>Settings</span>
+            </Link>
+            <div className="qm-mini-profile">
+              <img
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+                alt="Tutor avatar"
+                className="qm-mini-avatar"
               />
-            </div>
-            <div className="qm-sort">
-              <span>Sort by: Recent</span>
-              <ChevronDown size={15} />
+              <div>
+                <p className="qm-mini-name">{userName}</p>
+                <p className="qm-mini-role">Tutor</p>
+              </div>
             </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Quiz table */}
-        <div className="qm-table-wrap">
-          <table className="qm-table">
-            <thead>
-              <tr>
-                <th>Quiz</th>
-                <th>Lesson</th>
-                <th>Questions</th>
-                <th>Pass Mark</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredQuizzes.map((quiz) => (
-                <tr key={quiz.id}>
-                  <td>
-                    <div className="qm-quiz-cell">
-                      <p className="qm-quiz-title">{quiz.title}</p>
-                      <p className="qm-quiz-updated">{quiz.updated}</p>
-                    </div>
-                  </td>
-                  <td>
-                    <p className="qm-lesson-name">{quiz.lesson}</p>
+        {/* Content */}
+        <div className="qm-content">
+          {/* Topbar */}
+          <header className="qm-topbar">
+            <div className="qm-topbar-spacer" />
+            <div className="qm-topbar-right">
+              <button className="qm-icon-btn" aria-label="Search">
+                <Search size={18} />
+              </button>
+              <button className="qm-icon-btn" aria-label="Notifications">
+                <Bell size={18} />
+                <span className="qm-notif-dot" />
+              </button>
+              <Link to="/student/profile" className="qm-user-chip">
+                <img
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+                  alt="Tutor avatar"
+                  className="qm-user-avatar"
+                />
+                <span className="qm-user-name">{userName}</span>
+                <ChevronDown size={16} />
+              </Link>
+            </div>
+          </header>
+
+          <main className="qm-main">
+            {/* Heading */}
+            <div className="qm-heading-row">
+              <div>
+                <h1>Quiz Management</h1>
+                <div className="qm-breadcrumb">
+                  <Link to="/tutor/dashboard">Home</Link>
+                  <ChevronRight size={14} />
+                  <Link to="/tutor/dashboard">Tutor</Link>
+                  <ChevronRight size={14} />
+                  <span>Quizzes</span>
+                </div>
+              </div>
+              <button className="qm-btn qm-btn--primary" onClick={openBuilder}>
+                <Plus size={16} />
+                Create Quiz
+              </button>
+            </div>
+
+            {/* Stats */}
+            <section className="qm-stats">
+              {stats.map(({ icon: Icon, value, label }) => (
+                <div className="qm-stat-card" key={label}>
+                  <div className="qm-stat-icon">
+                    <Icon size={20} />
+                  </div>
+                  <div>
+                    <p className="qm-stat-value">{value}</p>
+                    <p className="qm-stat-label">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </section>
+
+            {/* Filter tabs + search */}
+            <div className="qm-toolbar">
+              <div className="qm-filter-tabs">
+                {filterTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    className={`qm-filter-tab ${activeFilter === tab ? "qm-filter-tab--active" : ""}`}
+                    onClick={() => setActiveFilter(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="qm-toolbar-right">
+                <div className="qm-search">
+                  <Search size={15} className="qm-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search quizzes..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="qm-sort">
+                  <span>Sort by: Recent</span>
+                  <ChevronDown size={15} />
+                </div>
+              </div>
+            </div>
+
+            {/* Quiz table */}
+            <div className="qm-table-wrap">
+              <table className="qm-table">
+                <thead>
+                  <tr>
+                    <th>Quiz</th>
+                    <th>Lesson</th>
+                    <th>Questions</th>
+                    <th>Pass Mark</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredQuizzes.map((quiz) => (
+                    <tr key={quiz.id}>
+                      <td>
+                        <div className="qm-quiz-cell">
+                          <p className="qm-quiz-title">{quiz.title}</p>
+                          <p className="qm-quiz-updated">{quiz.updated}</p>
+                        </div>
+                      </td>
+                      <td>
+                        <p className="qm-lesson-name">{quiz.lesson}</p>
+                        <p className="qm-lesson-course">{quiz.course}</p>
+                      </td>
+                      <td>{quiz.questionCount} Questions</td>
+                      <td>{quiz.passMark}%</td>
+                      <td>
+                        <span
+                          className={`qm-status ${statusClassMap[quiz.status]}`}
+                        >
+                          {quiz.status}
+                        </span>
+                      </td>
+                      <td className="qm-actions-cell">
+                        <button
+                          className="qm-menu-btn"
+                          onClick={() => toggleMenu(quiz.id)}
+                          aria-label="More actions"
+                        >
+                          <MoreVertical size={16} />
+                        </button>
+                        {openMenuId === quiz.id && (
+                          <div className="qm-menu">
+                            <button type="button">Edit Quiz</button>
+                            <button type="button">Preview</button>
+                            <button type="button">View Results</button>
+                            <button
+                              type="button"
+                              className="qm-menu-danger"
+                              onClick={() => deleteQuiz(quiz.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredQuizzes.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="qm-empty-row">
+                        No quizzes match your filters yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              {/* Mobile cards */}
+              <div className="qm-mobile-list">
+                {filteredQuizzes.map((quiz) => (
+                  <div className="qm-mobile-card" key={quiz.id}>
+                    <p className="qm-quiz-title">{quiz.title}</p>
                     <p className="qm-lesson-course">{quiz.course}</p>
-                  </td>
-                  <td>{quiz.questionCount} Questions</td>
-                  <td>{quiz.passMark}%</td>
-                  <td>
-                    <span
-                      className={`qm-status ${statusClassMap[quiz.status]}`}
-                    >
+                    <div className="qm-mobile-meta">
+                      <span>{quiz.questionCount} Questions</span>
+                      <span>Pass: {quiz.passMark}%</span>
+                    </div>
+                    <span className={`qm-status ${statusClassMap[quiz.status]}`}>
                       {quiz.status}
                     </span>
-                  </td>
-                  <td className="qm-actions-cell">
-                    <button
-                      className="qm-menu-btn"
-                      onClick={() => toggleMenu(quiz.id)}
-                      aria-label="More actions"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                    {openMenuId === quiz.id && (
-                      <div className="qm-menu">
-                        <button type="button">Edit Quiz</button>
-                        <button type="button">Preview</button>
-                        <button type="button">View Results</button>
-                        <button
-                          type="button"
-                          className="qm-menu-danger"
-                          onClick={() => deleteQuiz(quiz.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {filteredQuizzes.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="qm-empty-row">
-                    No quizzes match your filters yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-
-          {/* Mobile cards */}
-          <div className="qm-mobile-list">
-            {filteredQuizzes.map((quiz) => (
-              <div className="qm-mobile-card" key={quiz.id}>
-                <p className="qm-quiz-title">{quiz.title}</p>
-                <p className="qm-lesson-course">{quiz.course}</p>
-                <div className="qm-mobile-meta">
-                  <span>{quiz.questionCount} Questions</span>
-                  <span>Pass: {quiz.passMark}%</span>
-                </div>
-                <span className={`qm-status ${statusClassMap[quiz.status]}`}>
-                  {quiz.status}
-                </span>
-                <div className="qm-mobile-actions">
-                  <button className="qm-btn qm-btn--outline">Edit</button>
-                  <button
-                    className="qm-btn qm-btn--outline"
-                    onClick={() => deleteQuiz(quiz.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
+                    <div className="qm-mobile-actions">
+                      <button className="qm-btn qm-btn--outline">Edit</button>
+                      <button
+                        className="qm-btn qm-btn--outline"
+                        onClick={() => deleteQuiz(quiz.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
 
       {/* Quiz builder panel */}
       {builderOpen && (

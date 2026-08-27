@@ -19,6 +19,7 @@ import {
   Trophy,
   Compass,
   BadgeCheck,
+  Camera,
 } from "lucide-react";
 import api from "../../services/api";
 import { getCurrentUser } from "../../services/authService";
@@ -65,23 +66,24 @@ const settingsCards = [
 ];
 
 export default function StudentProfile() {
-  const [fullName, setFullName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  const [country, setCountry] = React.useState("");
-  const [role, setRole] = React.useState("Student");
-  const [avatar, setAvatar] = React.useState("");
-  const [memberSince, setMemberSince] = React.useState("");
-  const [stats, setStats] = React.useState([
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
+  const [role, setRole] = useState("Student");
+  const [avatar, setAvatar] = useState("");
+  const [memberSince, setMemberSince] = useState("");
+  const [stats, setStats] = useState([
     { value: "0", label: "Courses" },
     { value: "0", label: "Completed" },
     { value: "0", label: "Certificates" },
     { value: "0h", label: "Learning Time" },
   ]);
-  const [loading, setLoading] = React.useState(true);
-  const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccess] = React.useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -135,6 +137,61 @@ export default function StudentProfile() {
 
     fetchProfile();
   }, []);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      setError("Please select a PNG, JPG, JPEG, or WEBP image.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Image must be smaller than 2MB.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      
+      const avatarUrl = res.data.url;
+      setAvatar(avatarUrl);
+
+      // Auto-save profile with new avatar
+      await api.put("/profile", {
+        name: fullName,
+        email: email,
+        phone: phone,
+        country: country,
+        avatar: avatarUrl,
+      });
+
+      // Update local storage
+      const user = getCurrentUser();
+      if (user) {
+        user.avatar = avatarUrl;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      setSuccess("Avatar updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Failed to upload avatar:", err);
+      setError(err.response?.data?.message || "Failed to upload avatar.");
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = null;
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -275,14 +332,30 @@ export default function StudentProfile() {
 
           {/* Profile hero */}
           <section className="sp-hero">
-            <img
-              src={
-                avatar ||
-                "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=200&h=200&fit=crop"
-              }
-              alt="Profile avatar"
-              className="sp-hero-avatar"
-            />
+            <div className="sp-hero-avatar-wrap">
+              <img
+                src={
+                  avatar ||
+                  "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=200&h=200&fit=crop"
+                }
+                alt="Profile avatar"
+                className="sp-hero-avatar"
+              />
+              <label className="sp-avatar-upload" htmlFor="avatarUpload">
+                <Camera size={16} />
+                <input
+                  id="avatarUpload"
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  hidden
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                />
+              </label>
+              {uploadingAvatar && (
+                <span className="sp-avatar-uploading">Uploading...</span>
+              )}
+            </div>
             <div className="sp-hero-info">
               <p className="sp-hero-name">{fullName || "Student"}</p>
               <p className="sp-hero-role">{role}</p>

@@ -462,3 +462,49 @@
     width: 100%;
   }
 }
+
+
+.sp-hero-avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.sp-hero-avatar-wrap .sp-hero-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ede9fe;
+}
+
+.sp-avatar-upload {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border: 2px solid #fff;
+}
+
+.sp-avatar-upload:hover {
+  background: #6d28d9;
+}
+
+.sp-avatar-uploading {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #7c3aed;
+  font-weight: 500;
+  white-space: nowrap;
+}

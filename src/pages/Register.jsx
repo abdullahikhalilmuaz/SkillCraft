@@ -263,24 +263,6 @@ export default function Register() {
               >
                 {submitting ? "Creating Account..." : "Create Account"}
               </button>
-
-              <div className="register-divider">
-                <div className="register-divider__line" />
-                <span className="register-divider__label">
-                  Or continue with
-                </span>
-                <div className="register-divider__line" />
-              </div>
-
-              <div className="register-social-row">
-                <button type="button" className="register-social-btn">
-                  <GoogleIcon /> Google
-                </button>
-                <button type="button" className="register-social-btn">
-                  <FacebookIcon /> Facebook
-                </button>
-              </div>
-
               <p className="register-login">
                 Already have an account? <Link to="/login">Log in here</Link>
               </p>

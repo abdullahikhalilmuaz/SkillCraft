@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/createcourse.css";
 import api from "../../services/api";
@@ -12,6 +12,8 @@ import {
   ListOrdered,
   Link2,
   ImagePlus,
+  Upload,
+  Play,
 } from "lucide-react";
 
 const steps = [
@@ -52,10 +54,26 @@ export default function CreateCourse() {
   });
 
   const [thumbnail, setThumbnail] = React.useState(null);
+  const [thumbnailUrl, setThumbnailUrl] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [courseId, setCourseId] = React.useState(null);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+
+  // Curriculum states
+  const [lessons, setLessons] = React.useState([]);
+  const [showLessonModal, setShowLessonModal] = React.useState(false);
+  const [editingLesson, setEditingLesson] = React.useState(null);
+  const [lessonForm, setLessonForm] = React.useState({
+    title: "",
+    description: "",
+    content: "",
+    videoUrl: "",
+    duration: 0,
+    order: 1,
+  });
+  const [uploadingImage, setUploadingImage] = React.useState(false);
+  const [uploadingVideo, setUploadingVideo] = React.useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -69,8 +87,15 @@ export default function CreateCourse() {
     setSuccess("");
   };
 
-  const handleThumbnailChange = (e) => {
+  const handleLessonChange = (e) => {
+    const { id, value } = e.target;
+    setLessonForm((prev) => ({ ...prev, [id]: value }));
+    setError("");
+  };
+
+  const handleThumbnailChange = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = null;
 
     if (!file) return;
 
@@ -84,8 +109,64 @@ export default function CreateCourse() {
       return;
     }
 
-    setThumbnail(file);
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await api.post("/upload/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setThumbnailUrl(res.data.url);
+      setThumbnail(file);
+      setSuccess("Thumbnail uploaded successfully.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Thumbnail upload error:", err);
+      setError(err.response?.data?.message || "Failed to upload thumbnail.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleFileUpload = async (file, type) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    if (type === "image") setUploadingImage(true);
+    else setUploadingVideo(true);
+
     setError("");
+
+    try {
+      const res = await api.post(`/upload/${type}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (type === "image") {
+        setLessonForm((prev) => ({
+          ...prev,
+          content:
+            prev.content + `\n<img src="${res.data.url}" alt="image" />\n`,
+        }));
+      } else if (type === "video") {
+        setLessonForm((prev) => ({
+          ...prev,
+          videoUrl: res.data.url,
+        }));
+      }
+
+      setSuccess(`${type} uploaded successfully.`);
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(err.response?.data?.message || `Failed to upload ${type}.`);
+    } finally {
+      if (type === "image") setUploadingImage(false);
+      else setUploadingVideo(false);
+    }
   };
 
   const validateForm = () => {
@@ -125,14 +206,6 @@ export default function CreateCourse() {
     setSuccess("");
 
     try {
-      /*
-       * The current backend accepts only:
-       * title, category, level, description and image.
-       *
-       * Short + full description are combined into the
-       * single description field required by Course.js.
-       */
-
       const description = `${form.shortDescription.trim()}\n\n${form.fullDescription.trim()}`;
 
       const payload = {
@@ -140,7 +213,7 @@ export default function CreateCourse() {
         category: form.category,
         level: form.level,
         description,
-        image: "",
+        image: thumbnailUrl,
       };
 
       const response = await api.post("/courses", payload);
@@ -162,11 +235,95 @@ export default function CreateCourse() {
     }
   };
 
+  const fetchLessons = async () => {
+    if (!courseId) return;
+    try {
+      const res = await api.get(`/lessons/course/${courseId}`);
+      setLessons(res.data.lessons || []);
+    } catch (err) {
+      console.error("Failed to fetch lessons:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (courseId) {
+      fetchLessons();
+    }
+  }, [courseId]);
+
+  const handleSaveLesson = async () => {
+    if (!lessonForm.title.trim()) {
+      setError("Lesson title is required.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const payload = {
+        title: lessonForm.title,
+        description: lessonForm.description,
+        content: lessonForm.content,
+        videoUrl: lessonForm.videoUrl,
+        duration: Number(lessonForm.duration),
+        order: Number(lessonForm.order),
+      };
+
+      if (editingLesson) {
+        await api.put(`/lessons/${editingLesson._id}`, payload);
+      } else {
+        await api.post(`/lessons/course/${courseId}`, payload);
+      }
+
+      setShowLessonModal(false);
+      setEditingLesson(null);
+      setLessonForm({
+        title: "",
+        description: "",
+        content: "",
+        videoUrl: "",
+        duration: 0,
+        order: lessons.length + 1,
+      });
+      fetchLessons();
+      setSuccess(editingLesson ? "Lesson updated." : "Lesson added.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Save lesson error:", err);
+      setError(err.response?.data?.message || "Failed to save lesson.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const deleteLesson = async (lessonId) => {
+    if (!confirm("Delete this lesson?")) return;
+    try {
+      await api.delete(`/lessons/${lessonId}`);
+      fetchLessons();
+      setSuccess("Lesson deleted.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Delete lesson error:", err);
+      setError(err.response?.data?.message || "Failed to delete lesson.");
+    }
+  };
+
+  const editLesson = (lesson) => {
+    setEditingLesson(lesson);
+    setLessonForm({
+      title: lesson.title || "",
+      description: lesson.description || "",
+      content: lesson.content || "",
+      videoUrl: lesson.videoUrl || "",
+      duration: lesson.duration || 0,
+      order: lesson.order || 1,
+    });
+    setShowLessonModal(true);
+  };
+
   const handleSaveAndContinue = async () => {
-    /*
-     * Step 1 creates the actual course.
-     * The backend automatically makes it a draft.
-     */
     if (activeStep === 1) {
       const course = await createCourse();
 
@@ -182,14 +339,6 @@ export default function CreateCourse() {
   };
 
   const handleSaveDraft = async () => {
-    /*
-     * Creating a course already creates it as:
-     *
-     * published: false
-     *
-     * So this is currently the same backend operation
-     * as creating a draft.
-     */
     if (activeStep === 1) {
       const course = await createCourse();
 
@@ -197,10 +346,6 @@ export default function CreateCourse() {
 
       setSuccess("Course saved as draft.");
 
-      /*
-       * Give the success message a moment before returning
-       * to the tutor dashboard.
-       */
       setTimeout(() => {
         navigate("/tutor/dashboard");
       }, 800);
@@ -328,7 +473,6 @@ export default function CreateCourse() {
           </div>
 
           {/* Form panel */}
-          {/* Form panel */}
           <div className="cc-panel cc-form-panel">
             {activeStep === 1 && (
               <>
@@ -428,36 +572,72 @@ export default function CreateCourse() {
                 <h2 className="cc-form-heading">Curriculum</h2>
 
                 <div className="cc-field">
-                  <label>Course Curriculum</label>
+                  <label>Course Lessons</label>
 
-                  <div
-                    style={{
-                      padding: "30px",
-                      border: "1px dashed #d8b4fe",
-                      borderRadius: "12px",
-                      textAlign: "center",
-                      background: "#faf5ff",
-                    }}
-                  >
-                    <h3 style={{ marginBottom: "8px" }}>
-                      Add Sections and Lessons
-                    </h3>
-
-                    <p style={{ color: "#6b7280", marginBottom: "20px" }}>
-                      Start building the lessons students will follow in this
-                      course.
-                    </p>
-
-                    <button
-                      type="button"
-                      className="cc-btn cc-btn--primary"
-                      onClick={() => {
-                        alert("Curriculum builder coming next.");
+                  {lessons.length === 0 ? (
+                    <div
+                      style={{
+                        padding: "30px",
+                        border: "1px dashed #d8b4fe",
+                        borderRadius: "12px",
+                        textAlign: "center",
+                        background: "#faf5ff",
                       }}
                     >
-                      + Add Section
-                    </button>
-                  </div>
+                      <p style={{ color: "#6b7280" }}>
+                        No lessons yet. Add your first lesson!
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="cc-lesson-list">
+                      {lessons.map((lesson, index) => (
+                        <li key={lesson._id} className="cc-lesson-item">
+                          <span className="cc-lesson-order">{index + 1}</span>
+                          <div className="cc-lesson-info">
+                            <p className="cc-lesson-title">{lesson.title}</p>
+                            <p className="cc-lesson-meta">
+                              {lesson.duration || 0} min •
+                              {lesson.videoUrl ? " Video" : " Text"}
+                            </p>
+                          </div>
+                          <div className="cc-lesson-actions">
+                            <button
+                              type="button"
+                              onClick={() => editLesson(lesson)}
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteLesson(lesson._id)}
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <button
+                    type="button"
+                    className="cc-btn cc-btn--outline"
+                    style={{ marginTop: "10px" }}
+                    onClick={() => {
+                      setEditingLesson(null);
+                      setLessonForm({
+                        title: "",
+                        description: "",
+                        content: "",
+                        videoUrl: "",
+                        duration: 0,
+                        order: lessons.length + 1,
+                      });
+                      setShowLessonModal(true);
+                    }}
+                  >
+                    + Add Lesson
+                  </button>
                 </div>
 
                 <div
@@ -551,6 +731,23 @@ export default function CreateCourse() {
 
                   <p style={{ marginTop: "10px" }}>{form.shortDescription}</p>
 
+                  {thumbnailUrl && (
+                    <div style={{ marginTop: "16px" }}>
+                      <strong>Thumbnail:</strong>
+                      <img
+                        src={thumbnailUrl}
+                        alt="Course thumbnail"
+                        style={{
+                          width: "100%",
+                          maxHeight: "200px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          marginTop: "8px",
+                        }}
+                      />
+                    </div>
+                  )}
+
                   <div style={{ marginTop: "20px" }}>
                     <strong>Category:</strong> {form.category}
                   </div>
@@ -570,6 +767,19 @@ export default function CreateCourse() {
                       {form.fullDescription}
                     </p>
                   </div>
+
+                  {lessons.length > 0 && (
+                    <div style={{ marginTop: "20px" }}>
+                      <strong>Lessons ({lessons.length})</strong>
+                      <ul>
+                        {lessons.map((lesson, index) => (
+                          <li key={lesson._id}>
+                            {index + 1}. {lesson.title}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 <div
@@ -619,8 +829,35 @@ export default function CreateCourse() {
                   accept="image/png, image/jpeg"
                   hidden
                   onChange={handleThumbnailChange}
+                  disabled={uploadingImage}
                 />
               </label>
+
+              {thumbnailUrl && (
+                <img
+                  src={thumbnailUrl}
+                  alt="Course thumbnail"
+                  style={{
+                    width: "100%",
+                    maxHeight: "150px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                    marginTop: "8px",
+                  }}
+                />
+              )}
+
+              {uploadingImage && (
+                <p
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "13px",
+                    color: "#6b7280",
+                  }}
+                >
+                  Uploading...
+                </p>
+              )}
 
               <div className="cc-field cc-field--tight">
                 <label htmlFor="level">Course Level</label>
@@ -681,6 +918,204 @@ export default function CreateCourse() {
           </div>
         </div>
       </main>
+
+      {/* Lesson Modal */}
+      {showLessonModal && (
+        <div
+          className="cc-modal-overlay"
+          onClick={() => {
+            setShowLessonModal(false);
+            setEditingLesson(null);
+          }}
+        >
+          <div
+            className="cc-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              background: "#fff",
+              padding: "30px",
+              borderRadius: "12px",
+              maxWidth: "600px",
+              width: "90%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              zIndex: 1000,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <h2>{editingLesson ? "Edit Lesson" : "Add Lesson"}</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLessonModal(false);
+                  setEditingLesson(null);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="cc-field">
+              <label htmlFor="title">Lesson Title *</label>
+              <input
+                id="title"
+                type="text"
+                placeholder="Enter lesson title"
+                value={lessonForm.title}
+                onChange={handleLessonChange}
+              />
+            </div>
+
+            <div className="cc-field">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                rows={2}
+                placeholder="Brief description"
+                value={lessonForm.description}
+                onChange={handleLessonChange}
+              />
+            </div>
+
+            <div className="cc-field">
+              <label htmlFor="content">Content</label>
+              <textarea
+                id="content"
+                rows={4}
+                placeholder="Lesson content (text, images, etc.)"
+                value={lessonForm.content}
+                onChange={handleLessonChange}
+              />
+              <button
+                type="button"
+                className="cc-btn cc-btn--outline"
+                style={{ marginTop: "8px" }}
+                onClick={() => document.getElementById("imageUpload").click()}
+                disabled={uploadingImage}
+              >
+                <ImagePlus size={16} />{" "}
+                {uploadingImage ? "Uploading..." : "Upload Image"}
+              </button>
+              <input
+                id="imageUpload"
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "image");
+                  e.target.value = null;
+                }}
+              />
+            </div>
+
+            <div className="cc-field">
+              <label htmlFor="videoUrl">Video URL</label>
+              <input
+                id="videoUrl"
+                type="text"
+                placeholder="https://youtube.com/... or upload video"
+                value={lessonForm.videoUrl}
+                onChange={handleLessonChange}
+              />
+              <button
+                type="button"
+                className="cc-btn cc-btn--outline"
+                style={{ marginTop: "8px" }}
+                onClick={() => document.getElementById("videoUpload").click()}
+                disabled={uploadingVideo}
+              >
+                <Play size={16} />{" "}
+                {uploadingVideo ? "Uploading..." : "Upload Video"}
+              </button>
+              <input
+                id="videoUpload"
+                type="file"
+                accept="video/*"
+                hidden
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file, "video");
+                  e.target.value = null;
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "16px" }}>
+              <div className="cc-field" style={{ flex: 1 }}>
+                <label htmlFor="duration">Duration (minutes)</label>
+                <input
+                  id="duration"
+                  type="number"
+                  min="0"
+                  value={lessonForm.duration}
+                  onChange={handleLessonChange}
+                />
+              </div>
+              <div className="cc-field" style={{ flex: 1 }}>
+                <label htmlFor="order">Order</label>
+                <input
+                  id="order"
+                  type="number"
+                  min="1"
+                  value={lessonForm.order}
+                  onChange={handleLessonChange}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                type="button"
+                className="cc-btn cc-btn--outline"
+                onClick={() => {
+                  setShowLessonModal(false);
+                  setEditingLesson(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="cc-btn cc-btn--primary"
+                onClick={handleSaveLesson}
+                disabled={submitting}
+              >
+                {submitting
+                  ? "Saving..."
+                  : editingLesson
+                    ? "Update Lesson"
+                    : "Add Lesson"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
