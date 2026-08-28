@@ -191,9 +191,6 @@ function LogoMark() {
   );
 }
 
-/* Original illustration inspired by the mockup's product-on-pedestal hero
-   art: cosmetic bottles on a podium with leaf accents. Drawn from scratch
-   as SVG, not a copy of any stock asset. */
 function HeroIllustration() {
   return (
     <svg
@@ -231,7 +228,6 @@ function HeroIllustration() {
 
       <circle cx="240" cy="190" r="180" fill="url(#glowSoft)" />
 
-      {/* leaves */}
       <path
         d="M60 260c40-10 66-42 72-88-40 4-74 30-86 66-6 12 0 24 14 22z"
         fill="url(#leafGrad)"
@@ -243,14 +239,12 @@ function HeroIllustration() {
         opacity="0.85"
       />
 
-      {/* pedestal */}
       <ellipse cx="240" cy="360" rx="150" ry="26" fill="url(#pedestalGrad)" />
       <path
         d="M110 340h260l-16 40a20 20 0 0 1-19 15H145a20 20 0 0 1-19-15z"
         fill="url(#pedestalGrad)"
       />
 
-      {/* lotion bottle (tall, cream, pump) */}
       <rect
         x="255"
         y="150"
@@ -263,7 +257,6 @@ function HeroIllustration() {
       <rect x="278" y="80" width="14" height="35" rx="5" fill="#D8B4FE" />
       <circle cx="285" cy="76" r="8" fill="#F0ABFC" />
 
-      {/* pink pump bottle */}
       <rect
         x="185"
         y="175"
@@ -276,7 +269,6 @@ function HeroIllustration() {
       <rect x="204" y="120" width="14" height="30" rx="5" fill="#C026D3" />
       <circle cx="211" cy="116" r="7" fill="#F0ABFC" />
 
-      {/* cream jar */}
       <rect
         x="150"
         y="255"
@@ -288,16 +280,13 @@ function HeroIllustration() {
       <ellipse cx="179" cy="255" rx="29" ry="9" fill="#F3E8FF" />
       <ellipse cx="179" cy="252" rx="24" ry="6" fill="#FFFFFF" />
 
-      {/* dropper bottle */}
       <rect x="245" y="235" width="34" height="62" rx="8" fill="#7C3AED" />
       <rect x="253" y="212" width="18" height="26" rx="4" fill="#6D28D9" />
       <circle cx="262" cy="208" r="6" fill="#5B21B6" />
 
-      {/* small round pot */}
       <circle cx="315" cy="278" r="20" fill="#F0ABFC" />
       <ellipse cx="315" cy="264" rx="16" ry="5" fill="#FDE8FF" />
 
-      {/* perfume bottle */}
       <rect
         x="340"
         y="228"
@@ -310,7 +299,6 @@ function HeroIllustration() {
       <rect x="352" y="205" width="22" height="26" rx="5" fill="#C084FC" />
       <rect x="358" y="192" width="10" height="16" rx="3" fill="#EAB308" />
 
-      {/* sparkle accents */}
       <path
         d="M410 130l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"
         fill="#F0ABFC"
