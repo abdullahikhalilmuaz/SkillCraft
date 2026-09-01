@@ -41,8 +41,7 @@ export default function Quiz() {
   const handleSubmitQuiz = async () => {
     try {
       setSubmitting(true);
-      
-      // Format answers as { index: selectedOption } for backend
+
       const formattedAnswers = {};
       questions.forEach((q, index) => {
         if (answers[q._id] !== undefined) {
@@ -52,26 +51,28 @@ export default function Quiz() {
 
       const response = await api.post(`/learning/quiz/${quizId}/submit`, {
         answers: formattedAnswers,
-        timeSpent: 0, // Could track time spent if needed
+        timeSpent: 0,
       });
 
       const result = response.data.result;
-      
-      // Navigate to result page with data
-      navigate(`/student/quiz/${quizId}/result`, { 
-        state: { 
+
+      navigate(`/student/quiz/${quizId}/result`, {
+        state: {
           result: {
             correct: result.correct,
             total: result.total,
             score: result.score,
             passed: result.passed,
-            passMark: result.passMark
-          }
-        } 
+            passMark: result.passMark,
+          },
+        },
       });
     } catch (err) {
       console.error("Failed to submit quiz:", err);
-      setError(err.response?.data?.message || "Failed to submit quiz. Please try again.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to submit quiz. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -102,7 +103,10 @@ export default function Quiz() {
   const selectedOption = answers[question._id];
 
   const handleSelect = (optionId) => {
-    setAnswers((prev) => ({ ...prev, [question._id]: optionId }));
+    console.log("Option clicked:", optionId);
+    const newAnswers = { ...answers, [question._id]: optionId };
+    console.log("New answers:", newAnswers);
+    setAnswers(newAnswers);
   };
 
   const handlePrevious = () => {
@@ -145,21 +149,23 @@ export default function Quiz() {
           <h1 className="qz-question-text">{question.question}</h1>
 
           <div className="qz-options">
-            {question.options.map((option, index) => (
-              <button
-                key={index}
-                className={`qz-option ${
-                  selectedOption === index ? "qz-option--selected" : ""
-                }`}
-                onClick={() => handleSelect(index)}
-                disabled={submitting}
-              >
-                <span className="qz-option-letter">
-                  {String.fromCharCode(65 + index)}
-                </span>
-                <span className="qz-option-text">{option}</span>
-              </button>
-            ))}
+            {question.options.map((option, index) => {
+              const isSelected = selectedOption === index;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  className={`qz-option ${isSelected ? "qz-option--selected" : ""}`}
+                  onClick={() => handleSelect(index)}
+                  disabled={submitting}
+                >
+                  <span className="qz-option-letter">
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <span className="qz-option-text">{option}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -176,10 +182,10 @@ export default function Quiz() {
           <button
             className="qz-btn qz-btn--primary"
             onClick={handleNext}
-            disabled={!selectedOption || submitting}
+            disabled={selectedOption === undefined || submitting}
           >
-            {submitting 
-              ? "Submitting..." 
+            {submitting
+              ? "Submitting..."
               : currentIndex === totalQuestions - 1
                 ? "Finish Quiz"
                 : "Next Question"}

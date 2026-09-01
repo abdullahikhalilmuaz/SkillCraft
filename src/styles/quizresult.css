@@ -12,7 +12,12 @@
   --radius-lg: 24px;
   --shadow-card: 0 10px 30px rgba(76, 29, 149, 0.08);
 
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--ink-900);
   background: var(--bg-soft);
   min-height: 100vh;
@@ -134,7 +139,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .qr-btn:hover {
@@ -157,5 +164,72 @@
 @media (max-width: 480px) {
   .qr-card {
     padding: 32px 24px;
+  }
+}
+
+.qr-ai-card {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+  border: 1px solid #d8b4fe;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.qr-ai-loading {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.qr-ai-level {
+  font-size: 15px;
+  color: #1f2937;
+  margin: 0 0 4px;
+}
+
+.qr-ai-level strong {
+  color: #7c3aed;
+}
+
+.qr-ai-recommendation {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.qr-actions .qr-btn {
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
+}
+
+
+.qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.qr-actions .qr-btn {
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
+}
+
+@media (max-width: 560px) {
+  .qr-actions .qr-btn {
+    min-width: 100%;
   }
 }

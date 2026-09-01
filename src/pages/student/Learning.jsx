@@ -48,6 +48,22 @@ export default function Learning() {
   const messagesEndRef = useRef(null);
   const currentUser = getCurrentUser();
 
+  // Time tracking state
+  const [timeSpent, setTimeSpent] = useState(0);
+  const startTimeRef = useRef(Date.now());
+
+  // Track time spent on page
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+    
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 60000);
+      setTimeSpent(elapsed);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -182,7 +198,9 @@ export default function Learning() {
 
     setCompleting(true);
     try {
-      await api.post(`/learning/lesson/${currentLesson._id}/complete`);
+      await api.post(`/learning/lesson/${currentLesson._id}/complete`, {
+        timeSpent: timeSpent,
+      });
 
       setLessons((prev) =>
         prev.map((l) =>

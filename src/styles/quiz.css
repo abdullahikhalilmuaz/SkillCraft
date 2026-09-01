@@ -13,7 +13,12 @@
   --radius-md: 18px;
   --shadow-card: 0 10px 30px rgba(76, 29, 149, 0.06);
 
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--ink-900);
   background: var(--bg-soft);
   min-height: 100vh;
@@ -120,7 +125,10 @@
   border: 1.5px solid var(--border);
   background: var(--white);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  pointer-events: auto !important; /* Add this */
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .qz-option:hover {
@@ -175,7 +183,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .qz-btn:disabled {

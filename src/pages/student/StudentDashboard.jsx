@@ -18,6 +18,8 @@ import {
   Star,
   Menu,
   X,
+  Sparkles,
+  Compass,
 } from "lucide-react";
 import api from "../../services/api";
 import { getCurrentUser } from "../../services/authService";
@@ -48,6 +50,9 @@ export default function StudentDashboard() {
   const [recommendedCourses, setRecommendedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [aiRecommendation, setAiRecommendation] = useState(null);
+  const [lessonRecommendation, setLessonRecommendation] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const userDataSaved = localStorage.getItem("user");
 
@@ -105,6 +110,112 @@ export default function StudentDashboard() {
                 "https://picsum.photos/seed/default/200/200",
               progress: top.progress || 0,
             });
+          }
+
+          // Get AI recommendation - ONLY from courses with progress > 0
+          try {
+            setAiLoading(true);
+
+            // Filter enrollments with progress > 0
+            const activeEnrollments = enrollments.filter((e) => e.progress > 0);
+
+            if (activeEnrollments.length === 0) {
+              setAiLoading(false);
+              return;
+            }
+
+            // Calculate aggregated stats from ACTIVE enrollments only
+            const totalLessons = activeEnrollments.reduce(
+              (sum, e) => sum + (e.course?.lessons || 0),
+              0,
+            );
+            const totalCompleted = activeEnrollments.reduce(
+              (sum, e) => sum + (e.completedLessons?.length || 0),
+              0,
+            );
+            const totalQuizzesAttempted = activeEnrollments.reduce(
+              (sum, e) => sum + (e.quizzesAttempted || 0),
+              0,
+            );
+            const totalTimeSpent = activeEnrollments.reduce(
+              (sum, e) => sum + (e.timeSpent || 0),
+              0,
+            );
+            const avgScore =
+              activeEnrollments.length > 0
+                ? Math.round(
+                    activeEnrollments.reduce(
+                      (sum, e) => sum + (e.averageScore || 0),
+                      0,
+                    ) / activeEnrollments.length,
+                  )
+                : 0;
+            const avgProgress =
+              activeEnrollments.length > 0
+                ? Math.round(
+                    activeEnrollments.reduce(
+                      (sum, e) => sum + (e.progress || 0),
+                      0,
+                    ) / activeEnrollments.length,
+                  )
+                : 0;
+
+            const aiPayload = {
+              lessonsCompleted: totalCompleted,
+              totalLessons: totalLessons || 8,
+              timeSpent: totalTimeSpent,
+              quizzesAttempted: totalQuizzesAttempted,
+              averageScore: avgScore,
+              completionRate: avgProgress,
+              progress: avgProgress,
+            };
+
+            const aiResponse = await fetch("http://localhost:5001/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(aiPayload),
+            });
+
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              setAiRecommendation(aiData);
+
+              // Get lesson recommendation
+              try {
+                const lessonResponse = await fetch(
+                  "http://localhost:5001/predict-lesson",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      lessonsCompleted: totalCompleted,
+                      averageScore: avgScore,
+                      progress: avgProgress,
+                      timeSpent: totalTimeSpent,
+                    }),
+                  },
+                );
+
+                if (lessonResponse.ok) {
+                  const lessonData = await lessonResponse.json();
+                  setLessonRecommendation(lessonData);
+                }
+              } catch (lessonErr) {
+                console.error(
+                  "Failed to get lesson recommendation:",
+                  lessonErr,
+                );
+              }
+            }
+          } catch (aiErr) {
+            console.error("Failed to get AI recommendation:", aiErr);
+            // Silently fail - AI is optional
+          } finally {
+            setAiLoading(false);
           }
         }
 
@@ -301,6 +412,55 @@ export default function StudentDashboard() {
               </div>
             ))}
           </section>
+
+          {/* AI Recommendation Card */}
+          {aiRecommendation && (
+            <section className="sd-section sd-ai-section">
+              <div className="sd-ai-card">
+                <div className="sd-ai-header">
+                  <Sparkles size={20} className="sd-ai-icon" />
+                  <span className="sd-ai-badge">AI-Powered Insight</span>
+                </div>
+                <div className="sd-ai-body">
+                  <p className="sd-ai-level">
+                    Your current skill level:{" "}
+                    <strong>{aiRecommendation.skillLevel}</strong>
+                  </p>
+                  <p className="sd-ai-recommendation">
+                    {aiRecommendation.recommendation}
+                  </p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Lesson Recommendation Card */}
+          {lessonRecommendation && continueCourse && (
+            <section className="sd-section sd-lesson-section">
+              <div className="sd-lesson-card">
+                <div className="sd-lesson-header">
+                  <Compass size={20} className="sd-lesson-icon" />
+                  <span className="sd-lesson-badge">
+                    Recommended Next Lesson
+                  </span>
+                </div>
+                <div className="sd-lesson-body">
+                  <p className="sd-lesson-name">
+                    <strong>{lessonRecommendation.lessonName}</strong>
+                  </p>
+                  <p className="sd-lesson-recommendation">
+                    {lessonRecommendation.recommendation}
+                  </p>
+                  <Link
+                    to={`/student/learn/${continueCourse.id}/1`}
+                    className="sd-btn sd-btn--primary sd-lesson-btn"
+                  >
+                    Go to Lesson
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Continue Learning */}
           {continueCourse && (
