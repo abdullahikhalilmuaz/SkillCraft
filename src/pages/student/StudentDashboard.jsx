@@ -47,6 +47,7 @@ export default function StudentDashboard() {
     { icon: Clock, value: "0h", label: "Learning Hours" },
   ]);
   const [continueCourse, setContinueCourse] = useState(null);
+  const [continueCourseLessons, setContinueCourseLessons] = useState([]);
   const [recommendedCourses, setRecommendedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -110,6 +111,16 @@ export default function StudentDashboard() {
                 "https://picsum.photos/seed/default/200/200",
               progress: top.progress || 0,
             });
+
+            // Fetch lessons for this course
+            try {
+              const lessonsRes = await api.get(
+                `/lessons/course/${top.course._id || top.course.id}`,
+              );
+              setContinueCourseLessons(lessonsRes.data.lessons || []);
+            } catch (e) {
+              console.error("Failed to fetch course lessons:", e);
+            }
           }
 
           // Get AI recommendation - ONLY from courses with progress > 0
@@ -170,16 +181,13 @@ export default function StudentDashboard() {
               progress: avgProgress,
             };
 
-            const aiResponse = await fetch(
-              "https://skillcraft-ai-backend.onrender.com/predict",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(aiPayload),
+            const aiResponse = await fetch("https://skillcraft-ai-backend.onrender.com/predict", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
               },
-            );
+              body: JSON.stringify(aiPayload),
+            });
 
             if (aiResponse.ok) {
               const aiData = await aiResponse.json();
@@ -293,6 +301,17 @@ export default function StudentDashboard() {
 
     fetchDashboardData();
   }, []);
+
+  // Get the actual lesson ID for the recommended lesson
+  const getRecommendedLessonId = () => {
+    if (!lessonRecommendation || !continueCourseLessons.length) return null;
+    const nextLessonNumber = lessonRecommendation.nextLesson;
+    // Find lesson by order number
+    const lesson = continueCourseLessons.find(
+      (l) => l.order === nextLessonNumber,
+    );
+    return lesson?._id || null;
+  };
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
@@ -438,32 +457,38 @@ export default function StudentDashboard() {
           )}
 
           {/* Lesson Recommendation Card */}
-          {lessonRecommendation && continueCourse && (
-            <section className="sd-section sd-lesson-section">
-              <div className="sd-lesson-card">
-                <div className="sd-lesson-header">
-                  <Compass size={20} className="sd-lesson-icon" />
-                  <span className="sd-lesson-badge">
-                    Recommended Next Lesson
-                  </span>
+          {lessonRecommendation &&
+            continueCourse &&
+            continueCourseLessons.length > 0 && (
+              <section className="sd-section sd-lesson-section">
+                <div className="sd-lesson-card">
+                  <div className="sd-lesson-header">
+                    <Compass size={20} className="sd-lesson-icon" />
+                    <span className="sd-lesson-badge">
+                      Recommended Next Lesson
+                    </span>
+                  </div>
+                  <div className="sd-lesson-body">
+                    <p className="sd-lesson-name">
+                      <strong>
+                        {continueCourseLessons.find(
+                          (l) => l.order === lessonRecommendation.nextLesson,
+                        )?.title || lessonRecommendation.lessonName}
+                      </strong>
+                    </p>
+                    <p className="sd-lesson-recommendation">
+                      {lessonRecommendation.recommendation}
+                    </p>
+                    <Link
+                      to={`/student/learn/${continueCourse.id}/${getRecommendedLessonId() || "1"}`}
+                      className="sd-btn sd-btn--primary sd-lesson-btn"
+                    >
+                      Go to Lesson
+                    </Link>
+                  </div>
                 </div>
-                <div className="sd-lesson-body">
-                  <p className="sd-lesson-name">
-                    <strong>{lessonRecommendation.lessonName}</strong>
-                  </p>
-                  <p className="sd-lesson-recommendation">
-                    {lessonRecommendation.recommendation}
-                  </p>
-                  <Link
-                    to={`/student/learn/${continueCourse.id}/1`}
-                    className="sd-btn sd-btn--primary sd-lesson-btn"
-                  >
-                    Go to Lesson
-                  </Link>
-                </div>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
           {/* Continue Learning */}
           {continueCourse && (
