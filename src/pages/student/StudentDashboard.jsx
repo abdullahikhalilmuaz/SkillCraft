@@ -170,13 +170,16 @@ export default function StudentDashboard() {
               progress: avgProgress,
             };
 
-            const aiResponse = await fetch("http://localhost:5001/predict", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
+            const aiResponse = await fetch(
+              "https://skillcraft-ai-backend.onrender.com/predict",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(aiPayload),
               },
-              body: JSON.stringify(aiPayload),
-            });
+            );
 
             if (aiResponse.ok) {
               const aiData = await aiResponse.json();
@@ -185,7 +188,7 @@ export default function StudentDashboard() {
               // Get lesson recommendation
               try {
                 const lessonResponse = await fetch(
-                  "http://localhost:5001/predict-lesson",
+                  "https://skillcraft-ai-backend.onrender.com/predict-lesson",
                   {
                     method: "POST",
                     headers: {

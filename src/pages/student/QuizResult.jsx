@@ -108,7 +108,8 @@ export default function QuizResult() {
         progress: avgProgress,
       };
 
-      const aiResponse = await fetch("http://localhost:5001/predict", {
+      const aiResponse = await fetch("https://skillcraft-ai-backend.onrender.com/predict", {
+        
         method: "POST",
         headers: {
           "Content-Type": "application/json",
