@@ -20,6 +20,9 @@ import QuizResult from "./pages/student/QuizResult";
 import AIRecommendations from "./pages/student/AIRecommendations";
 import StudentProfile from "./pages/student/StudentProfile";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
+import MyCertificates from "./pages/student/MyCertificates";
+import StudentSettings from "./pages/student/StudentSettings";
+import StudentLayout from "./components/StudentLayout";
 
 // Tutor pages
 import TutorDashboard from "./pages/tutor/ToturDashboard";
@@ -28,13 +31,22 @@ import EditCourse from "./pages/tutor/EditCourse";
 import CourseManagement from "./pages/tutor/CourseManagement";
 import QuizManagement from "./pages/tutor/QuizManagement";
 import StudentAnalytics from "./pages/tutor/StudentAnalytics";
+import TutorLayout from "./components/TutorLayout";
+import TutorSettings from "./pages/tutor/TutorSettings";
 
 // Admin pages
-// import AdminDashboard from "./pages/admin/AdminDashboard";
-// import UserManagement from "./pages/admin/UserManagement";
-// import TutorApproval from "./pages/admin/TutorApproval";
-// import CourseApproval from "./pages/admin/CourseApproval";
-// import PlatformAnalytics from "./pages/admin/PlatformAnalytics";
+import AdminLayout from "./components/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManageStudents from "./pages/admin/ManageStudents";
+import TutorApproval from "./pages/admin/TutorApproval";
+import ManageCourses from "./pages/admin/ManageCourses";
+import ManageCategories from "./pages/admin/ManageCategories";
+import ManageQuizzes from "./pages/admin/ManageQuizzes";
+import Certificates from "./pages/admin/Certificates";
+import CertificateView from "./pages/admin/CertificateView";
+import Notifications from "./pages/admin/Notifications";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 function App() {
   return (
@@ -52,47 +64,72 @@ function App() {
 
         {/* Student protected routes */}
         <Route element={<ProtectedRoute roles={["student"]} />}>
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/courses" element={<MyCourses />} />
+          {/* Full-screen focused flows (no sidebar) */}
           <Route
             path="/student/learn/:courseId/:lessonId"
             element={<Learning />}
           />
           <Route path="/student/quiz/:quizId" element={<Quiz />} />
           <Route path="/student/quiz/:quizId/result" element={<QuizResult />} />
-          <Route
-            path="/student/recommendations"
-            element={<AIRecommendations />}
-          />
-          <Route path="/student/profile" element={<StudentProfile />} />
-          <Route path="/student/quizzes" element={<StudentQuizzes />} />
+
+          {/* Everything else wrapped in StudentLayout */}
+          <Route element={<StudentLayout />}>
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
+            <Route path="/student/courses" element={<MyCourses />} />
+            <Route
+              path="/student/recommendations"
+              element={<AIRecommendations />}
+            />
+            <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/settings" element={<StudentSettings />} />
+            <Route path="/student/quizzes" element={<StudentQuizzes />} />
+            <Route path="/student/certificates" element={<MyCertificates />} />
+            <Route
+              path="/student/certificates/:id"
+              element={<CertificateView />}
+            />
+          </Route>
         </Route>
 
         {/* Tutor protected routes */}
-        <Route element={<ProtectedRoute roles={["tutor", "admin"]} />}>
-          <Route path="/tutor/dashboard" element={<TutorDashboard />} />
-          <Route path="/tutor/courses/create" element={<CreateCourse />} />
-          <Route
-            path="/tutor/courses/:courseId/curriculum"
-            element={<CreateCourse />}
-          />
-          <Route
-            path="/tutor/courses/:courseId/edit"
-            element={<EditCourse />}
-          />
-          <Route path="/tutor/courses" element={<CourseManagement />} />
-          <Route path="/tutor/quizzes" element={<QuizManagement />} />
-          <Route path="/tutor/analytics" element={<StudentAnalytics />} />
+        <Route element={<ProtectedRoute roles={["tutor"]} />}>
+          <Route element={<TutorLayout />}>
+            <Route path="/tutor/dashboard" element={<TutorDashboard />} />
+            <Route path="/tutor/courses/create" element={<CreateCourse />} />
+            <Route
+              path="/tutor/courses/:courseId/curriculum"
+              element={<CreateCourse />}
+            />
+            <Route
+              path="/tutor/courses/:courseId/edit"
+              element={<EditCourse />}
+            />
+            <Route path="/tutor/courses" element={<CourseManagement />} />
+            <Route path="/tutor/quizzes" element={<QuizManagement />} />
+            <Route path="/tutor/analytics" element={<StudentAnalytics />} />
+            <Route path="/tutor/settings" element={<TutorSettings />} />
+          </Route>
         </Route>
 
-        {/* Admin protected routes (commented out) */}
-        {/* <Route element={<ProtectedRoute roles={["admin"]} />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/tutors" element={<TutorApproval />} />
-          <Route path="/admin/courses" element={<CourseApproval />} />
-          <Route path="/admin/analytics" element={<PlatformAnalytics />} />
-        </Route> */}
+        {/* Admin protected routes */}
+        <Route element={<ProtectedRoute roles={["admin"]} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/students" element={<ManageStudents />} />
+            <Route path="/admin/tutors" element={<TutorApproval />} />
+            <Route path="/admin/courses" element={<ManageCourses />} />
+            <Route path="/admin/categories" element={<ManageCategories />} />
+            <Route path="/admin/quizzes" element={<ManageQuizzes />} />
+            <Route path="/admin/certificates" element={<Certificates />} />
+            <Route
+              path="/admin/certificates/:id"
+              element={<CertificateView />}
+            />
+            <Route path="/admin/notifications" element={<Notifications />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+          </Route>
+        </Route>
 
         {/* 404 */}
         <Route

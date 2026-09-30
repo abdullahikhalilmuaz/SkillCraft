@@ -290,7 +290,7 @@ export default function TutorDashboard() {
               </select>
             </div>
 
-            <p className="td-earnings-value">$2,450.00</p>
+            <p className="td-earnings-value">₦2,450.00</p>
             <p className="td-earnings-delta">+18.5% from last month</p>
 
             <div className="td-chart-wrap">

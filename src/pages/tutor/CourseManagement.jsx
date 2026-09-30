@@ -38,11 +38,12 @@ export default function CourseManagement() {
     { icon: ClipboardList, value: "0", label: "Total Courses" },
     { icon: Users, value: "0", label: "Total Enrollments" },
     { icon: Star, value: "0.0", label: "Average Rating" },
-    { icon: DollarSign, value: "$0.00", label: "Total Earnings" },
+    { icon: DollarSign, value: "₦0.00", label: "Total Earnings" },
   ]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [sortBy, setSortBy] = React.useState("recent");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,11 +51,9 @@ export default function CourseManagement() {
         setLoading(true);
         setError("");
 
-        // Fetch tutor courses
         const coursesRes = await api.get("/courses/tutor/my-courses");
         const tutorCourses = coursesRes.data.courses || [];
 
-        // Format courses for display
         const formattedCourses = tutorCourses.map((course) => ({
           id: course._id,
           title: course.title,
@@ -67,7 +66,6 @@ export default function CourseManagement() {
         }));
         setCourses(formattedCourses);
 
-        // Fetch tutor stats
         const statsRes = await api.get("/courses/tutor/stats");
         const data = statsRes.data.stats;
         setStats([
@@ -86,7 +84,7 @@ export default function CourseManagement() {
             value: data.averageRating || "0.0",
             label: "Average Rating",
           },
-          { icon: DollarSign, value: "$0.00", label: "Total Earnings" },
+          { icon: DollarSign, value: "₦0.00", label: "Total Earnings" },
         ]);
       } catch (err) {
         console.error("Failed to fetch course data:", err);
@@ -112,11 +110,29 @@ export default function CourseManagement() {
     return filteredCourses.filter((c) => c.status === activeFilter);
   };
 
-  const displayedCourses = getFilteredCourses();
+  const displayedCourses = (() => {
+    const list = [...getFilteredCourses()];
+    switch (sortBy) {
+      case "title":
+        return list.sort((a, b) => a.title.localeCompare(b.title));
+      case "rating":
+        return list.sort(
+          (a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0),
+        );
+      case "enrollments":
+        return list.sort(
+          (a, b) =>
+            (parseInt(b.enrollments, 10) || 0) -
+            (parseInt(a.enrollments, 10) || 0),
+        );
+      default:
+        return list;
+    }
+  })();
 
   return (
     <div className="cm-page">
-      {/* Navbar */}
+      {/* Navbar (hidden by TutorLayout) */}
       <header className="cm-navbar">
         <div className="cm-navbar-left">
           <span className="cm-logo-mark">◆</span>
@@ -222,7 +238,16 @@ export default function CourseManagement() {
               />
             </div>
             <div className="cm-sort">
-              <span>Sort by: Recent</span>
+              <span>Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="recent">Recent</option>
+                <option value="title">Title (A–Z)</option>
+                <option value="rating">Highest Rated</option>
+                <option value="enrollments">Most Enrolled</option>
+              </select>
               <ChevronDown size={15} />
             </div>
           </div>

@@ -504,8 +504,6 @@ export default function CreateCourse() {
                       <option value="Cream Making">Cream Making</option>
                       <option value="Soap Making">Soap Making</option>
                       <option value="Perfume Making">Perfume Making</option>
-                      <option value="Baking">Baking</option>
-                      <option value="Chemical Making">Chemical Making</option>
                     </select>
 
                     <ChevronDown size={16} className="cc-select-icon" />
@@ -686,7 +684,7 @@ export default function CreateCourse() {
                   </p>
 
                   <div style={{ marginTop: "20px" }}>
-                    <strong>Price: $0.00</strong>
+                    <strong>Price: ₦0.00</strong>
                   </div>
                 </div>
 

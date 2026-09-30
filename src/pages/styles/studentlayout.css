@@ -1,0 +1,339 @@
+/* ===== Student Layout Tokens ===== */
+.sl-page {
+  --purple-50: #faf7fe;
+  --purple-100: #f2eafc;
+  --purple-200: #e6d6f8;
+  --purple-500: #9333ea;
+  --purple-600: #7e22ce;
+  --purple-700: #6b21a8;
+  --ink-900: #1f1329;
+  --ink-600: #6b6178;
+  --ink-400: #9c93a8;
+  --white: #ffffff;
+  --red-600: #dc2626;
+  --radius-sm: 10px;
+  --shadow-card: 0 4px 24px rgba(147, 51, 234, 0.08);
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--ink-900);
+  background: #f8f9fc;
+  min-height: 100vh;
+  display: flex;
+}
+
+.sl-page * {
+  box-sizing: border-box;
+}
+
+/* ===== Sidebar ===== */
+.sl-sidebar {
+  width: 260px;
+  background: var(--white);
+  border-right: 1px solid #f0ecf5;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 20;
+}
+
+.sl-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 24px;
+  border-bottom: 1px solid #f0ecf5;
+  margin-bottom: 16px;
+}
+.sl-logo-mark {
+  color: var(--purple-600);
+  font-size: 20px;
+}
+.sl-logo-text {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink-900);
+}
+
+.sl-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-600);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  margin-bottom: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+.sl-nav-item:hover {
+  background: var(--purple-50);
+  color: var(--purple-600);
+}
+.sl-nav-item--active {
+  background: var(--purple-100);
+  color: var(--purple-600);
+  font-weight: 600;
+}
+
+.sl-sidebar-bottom {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f0ecf5;
+}
+.sl-logout {
+  color: var(--red-600);
+}
+.sl-logout:hover {
+  background: #fee2e2;
+  color: var(--red-600);
+}
+
+.sl-mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  border-top: 1px solid #f0ecf5;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+.sl-mini-profile:hover {
+  background: var(--purple-50);
+}
+.sl-mini-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.sl-mini-name {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink-900);
+}
+.sl-mini-role {
+  font-size: 11px;
+  color: var(--ink-400);
+  margin: 0;
+}
+
+/* ===== Content ===== */
+.sl-content {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sl-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--white);
+  border-bottom: 1px solid #f0ecf5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.sl-topbar-spacer {
+  flex: 1;
+}
+.sl-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sl-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid #f0ecf5;
+  background: var(--white);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.sl-user-chip:hover {
+  background: var(--purple-50);
+  border-color: var(--purple-200);
+}
+.sl-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.sl-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+}
+
+.sl-main {
+  flex: 1;
+  padding: 24px 32px 64px;
+}
+
+/* =====================================================================
+   Hide duplicate chrome from student pages (they are now wrapped in
+   StudentLayout, so their own navbars / sidebars / topbars must not show).
+   ===================================================================== */
+.sl-main .sd-page,
+.sl-main .mc-page,
+.sl-main .ar-page,
+.sl-main .sp-page {
+  min-height: auto !important;
+  background: transparent !important;
+  display: block !important;
+}
+
+.sl-main .sd-sidebar,
+.sl-main .sd-topbar,
+.sl-main .sd-mobile-toggle,
+.sl-main .mc-navbar,
+.sl-main .ar-sidebar,
+.sl-main .ar-topbar,
+.sl-main .sp-sidebar,
+.sl-main .sp-topbar {
+  display: none !important;
+}
+
+.sl-main .sd-content,
+.sl-main .ar-content,
+.sl-main .sp-content {
+  margin-left: 0 !important;
+}
+
+.sl-main .sd-main,
+.sl-main .mc-main,
+.sl-main .ar-main,
+.sl-main .sp-main {
+  padding: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Hide the tab strip on My Learning (Wishlist/Certificates/Achievements
+   tabs were decorative; certificates now live in the sidebar). */
+.sl-main .mc-tabs,
+.sl-main .mc-tabs-divider {
+  display: none !important;
+}
+
+/* ===== Mobile topbar & backdrop (hidden on desktop) ===== */
+.sl-mobile-topbar,
+.sl-backdrop {
+  display: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .sl-page {
+    display: block;
+  }
+
+  .sl-mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--white);
+    border-bottom: 1px solid #f0ecf5;
+    position: sticky;
+    top: 0;
+    z-index: 15;
+  }
+  .sl-hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ink-900);
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sl-hamburger:hover {
+    background: var(--purple-50);
+    color: var(--purple-600);
+  }
+  .sl-mobile-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink-900);
+  }
+
+  .sl-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 30;
+    box-shadow: 0 8px 30px rgba(31, 19, 41, 0.15);
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+    top: 60px;
+    padding-bottom: 40px;
+  }
+  .sl-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sl-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(31, 19, 41, 0.4);
+    z-index: 25;
+    animation: slFadeIn 0.2s ease;
+  }
+  @keyframes slFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .sl-content {
+    margin-left: 0;
+  }
+
+  .sl-topbar {
+    padding: 12px 16px;
+  }
+  .sl-user-name {
+    display: none;
+  }
+
+  .sl-main {
+    padding: 16px 16px 48px;
+  }
+}

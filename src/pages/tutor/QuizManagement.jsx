@@ -39,7 +39,12 @@ const emptyQuestion = () => ({
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/tutor/dashboard" },
   { icon: BookOpen, label: "My Courses", path: "/tutor/courses" },
-  { icon: ClipboardList, label: "Quizzes", path: "/tutor/quizzes", active: true },
+  {
+    icon: ClipboardList,
+    label: "Quizzes",
+    path: "/tutor/quizzes",
+    active: true,
+  },
   { icon: GraduationCap, label: "Analytics", path: "/tutor/analytics" },
 ];
 
@@ -54,6 +59,7 @@ export default function QuizManagement() {
   ]);
   const [activeFilter, setActiveFilter] = useState("All Quizzes");
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("recent");
   const [openMenuId, setOpenMenuId] = useState(null);
   const [builderOpen, setBuilderOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -73,18 +79,15 @@ export default function QuizManagement() {
     if (user) setUserName(user.name || "Tutor");
   }, []);
 
-  // Fetch tutor's courses and their quizzes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError("");
 
-        // Fetch tutor's courses
         const coursesRes = await api.get("/courses/tutor/my-courses");
         const tutorCourses = coursesRes.data.courses || [];
 
-        // Fetch lessons for each course
         let allLessons = [];
         for (const course of tutorCourses) {
           try {
@@ -105,7 +108,6 @@ export default function QuizManagement() {
 
         setLessons(allLessons);
 
-        // Fetch real quizzes from backend
         try {
           const quizzesRes = await api.get("/quizzes");
           const fetchedQuizzes = quizzesRes.data.quizzes || [];
@@ -124,7 +126,6 @@ export default function QuizManagement() {
 
           setQuizzes(formattedQuizzes);
 
-          // Update stats with real data
           const totalQuizzes = formattedQuizzes.length;
           const totalQuestions = formattedQuizzes.reduce(
             (sum, q) => sum + q.questionCount,
@@ -158,7 +159,6 @@ export default function QuizManagement() {
           ]);
         } catch (err) {
           console.error("Failed to fetch quizzes:", err);
-          // Fallback to mock data if endpoint fails
           const mockQuizzes = allLessons.map((lesson, index) => ({
             id: `q-${index}`,
             title: `${lesson.title} Quiz`,
@@ -196,6 +196,22 @@ export default function QuizManagement() {
       .includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
+  const displayedQuizzes = (() => {
+    const list = [...filteredQuizzes];
+    switch (sortBy) {
+      case "title":
+        return list.sort((a, b) => a.title.localeCompare(b.title));
+      case "questions":
+        return list.sort(
+          (a, b) => (b.questionCount || 0) - (a.questionCount || 0),
+        );
+      case "passMark":
+        return list.sort((a, b) => (b.passMark || 0) - (a.passMark || 0));
+      default:
+        return list;
+    }
+  })();
 
   const openBuilder = () => {
     setFormTitle("");
@@ -284,8 +300,6 @@ export default function QuizManagement() {
   };
 
   const deleteQuiz = async (id) => {
-    // Note: DELETE /api/quizzes/:id endpoint doesn't exist in backend yet
-    // For now, just remove from local state
     setQuizzes((prev) => prev.filter((q) => q.id !== id));
     setOpenMenuId(null);
   };
@@ -307,7 +321,7 @@ export default function QuizManagement() {
 
   return (
     <div className="qm-page">
-      {/* Mobile Menu Toggle */}
+      {/* Mobile Menu Toggle (hidden by TutorLayout) */}
       <button
         className="qm-mobile-toggle"
         onClick={toggleMobileMenu}
@@ -317,8 +331,10 @@ export default function QuizManagement() {
       </button>
 
       <div className="qm-page-layout">
-        {/* Sidebar */}
-        <aside className={`qm-sidebar ${mobileMenuOpen ? "qm-sidebar--open" : ""}`}>
+        {/* Sidebar (hidden by TutorLayout) */}
+        <aside
+          className={`qm-sidebar ${mobileMenuOpen ? "qm-sidebar--open" : ""}`}
+        >
           <div className="qm-sidebar-logo">
             <span className="qm-logo-mark">◆</span>
             <span className="qm-logo-text">SkillCraft</span>
@@ -363,7 +379,7 @@ export default function QuizManagement() {
 
         {/* Content */}
         <div className="qm-content">
-          {/* Topbar */}
+          {/* Topbar (hidden by TutorLayout) */}
           <header className="qm-topbar">
             <div className="qm-topbar-spacer" />
             <div className="qm-topbar-right">
@@ -426,7 +442,9 @@ export default function QuizManagement() {
                 {filterTabs.map((tab) => (
                   <button
                     key={tab}
-                    className={`qm-filter-tab ${activeFilter === tab ? "qm-filter-tab--active" : ""}`}
+                    className={`qm-filter-tab ${
+                      activeFilter === tab ? "qm-filter-tab--active" : ""
+                    }`}
                     onClick={() => setActiveFilter(tab)}
                   >
                     {tab}
@@ -445,7 +463,16 @@ export default function QuizManagement() {
                   />
                 </div>
                 <div className="qm-sort">
-                  <span>Sort by: Recent</span>
+                  <span>Sort by:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="recent">Recent</option>
+                    <option value="title">Title (A–Z)</option>
+                    <option value="questions">Most Questions</option>
+                    <option value="passMark">Highest Pass Mark</option>
+                  </select>
                   <ChevronDown size={15} />
                 </div>
               </div>
@@ -465,7 +492,7 @@ export default function QuizManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredQuizzes.map((quiz) => (
+                  {displayedQuizzes.map((quiz) => (
                     <tr key={quiz.id}>
                       <td>
                         <div className="qm-quiz-cell">
@@ -511,7 +538,7 @@ export default function QuizManagement() {
                       </td>
                     </tr>
                   ))}
-                  {filteredQuizzes.length === 0 && (
+                  {displayedQuizzes.length === 0 && (
                     <tr>
                       <td colSpan={6} className="qm-empty-row">
                         No quizzes match your filters yet.
@@ -523,7 +550,7 @@ export default function QuizManagement() {
 
               {/* Mobile cards */}
               <div className="qm-mobile-list">
-                {filteredQuizzes.map((quiz) => (
+                {displayedQuizzes.map((quiz) => (
                   <div className="qm-mobile-card" key={quiz.id}>
                     <p className="qm-quiz-title">{quiz.title}</p>
                     <p className="qm-lesson-course">{quiz.course}</p>
@@ -531,7 +558,9 @@ export default function QuizManagement() {
                       <span>{quiz.questionCount} Questions</span>
                       <span>Pass: {quiz.passMark}%</span>
                     </div>
-                    <span className={`qm-status ${statusClassMap[quiz.status]}`}>
+                    <span
+                      className={`qm-status ${statusClassMap[quiz.status]}`}
+                    >
                       {quiz.status}
                     </span>
                     <div className="qm-mobile-actions">

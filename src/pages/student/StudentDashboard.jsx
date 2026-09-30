@@ -181,13 +181,16 @@ export default function StudentDashboard() {
               progress: avgProgress,
             };
 
-            const aiResponse = await fetch("https://skillcraft-ai-backend.onrender.com/predict", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
+            const aiResponse = await fetch(
+              "https://skillcraft-ai-backend.onrender.com/predict",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(aiPayload),
               },
-              body: JSON.stringify(aiPayload),
-            });
+            );
 
             if (aiResponse.ok) {
               const aiData = await aiResponse.json();
@@ -240,7 +243,7 @@ export default function StudentDashboard() {
             tutor: c.instructor?.name || "Tutor",
             rating: c.rating?.toFixed(1) || "0.0",
             reviews: c.reviews || "0",
-            price: "$0.00",
+            price: "₦0.00",
             image: c.image || "https://picsum.photos/seed/default/200/200",
             category: c.category || "Course",
           })),
@@ -422,7 +425,7 @@ export default function StudentDashboard() {
 
           {/* Stats */}
           <section className="sd-stats">
-            {stats.map(({ icon: Icon, value, label }) => (
+            {/* {stats.map(({ icon: Icon, value, label }) => (
               <div className="sd-stat-card" key={label}>
                 <div className="sd-stat-icon">
                   <Icon size={20} />
@@ -432,7 +435,7 @@ export default function StudentDashboard() {
                   <p className="sd-stat-label">{label}</p>
                 </div>
               </div>
-            ))}
+            ))} */}
           </section>
 
           {/* AI Recommendation Card */}

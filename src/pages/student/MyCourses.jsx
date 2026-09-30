@@ -5,7 +5,6 @@ import {
   Search,
   ChevronDown,
   ChevronRight,
-  Bell,
   BookOpen,
   CheckCircle2,
   Clock,
@@ -21,13 +20,12 @@ const summary = [
   { icon: Award, value: "3", label: "Certificates Earned" },
 ];
 
-const tabs = ["My Courses", "Wishlist", "Certificates", "Achievements"];
-
 export default function MyCourses() {
-  const [activeTab, setActiveTab] = React.useState("My Courses");
   const [courses, setCourses] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [sortBy, setSortBy] = React.useState("recent");
 
   useEffect(() => {
     const fetchEnrollments = async () => {
@@ -41,6 +39,7 @@ export default function MyCourses() {
           title: enrollment.course?.title || "Untitled Course",
           tutor: enrollment.course?.instructor?.name || "Tutor",
           progress: enrollment.progress || 0,
+          updatedAt: enrollment.updatedAt,
           image:
             enrollment.course?.image ||
             "https://picsum.photos/seed/default/200/200",
@@ -58,46 +57,23 @@ export default function MyCourses() {
     fetchEnrollments();
   }, []);
 
+  const displayedCourses = (() => {
+    const filtered = courses.filter((c) =>
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+    const list = [...filtered];
+    switch (sortBy) {
+      case "title":
+        return list.sort((a, b) => a.title.localeCompare(b.title));
+      case "progress":
+        return list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+      default:
+        return list;
+    }
+  })();
+
   return (
     <div className="mc-page">
-      {/* Navbar */}
-      <header className="mc-navbar">
-        <div className="mc-navbar-left">
-          <span className="mc-logo-mark">◆</span>
-          <span className="mc-logo-text">SkillCraft</span>
-        </div>
-
-        <nav className="mc-nav-links">
-          <Link to="/" className="mc-nav-link mc-nav-link--active">
-            Home
-          </Link>
-          <Link to="/courses" className="mc-nav-link">
-            Courses
-          </Link>
-          <Link to="/tutors" className="mc-nav-link">
-            Tutors
-          </Link>
-          <Link to="/about" className="mc-nav-link">
-            About Us
-          </Link>
-          <Link to="/contact" className="mc-nav-link">
-            Contact
-          </Link>
-        </nav>
-
-        <div className="mc-navbar-right">
-          <button className="mc-icon-btn" aria-label="Search">
-            <Search size={18} />
-          </button>
-          <Link to="/login" className="mc-btn mc-btn--ghost">
-            Login
-          </Link>
-          <Link to="/register" className="mc-btn mc-btn--primary">
-            Sign Up
-          </Link>
-        </div>
-      </header>
-
       <main className="mc-main">
         {/* Page heading + breadcrumb */}
         <div className="mc-heading">
@@ -109,20 +85,6 @@ export default function MyCourses() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="mc-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`mc-tab ${activeTab === tab ? "mc-tab--active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-        <div className="mc-tabs-divider" />
-
         {/* Body: courses + sidebar */}
         <div className="mc-body-grid">
           <div className="mc-courses-col">
@@ -130,10 +92,22 @@ export default function MyCourses() {
             <div className="mc-toolbar">
               <div className="mc-search">
                 <Search size={16} className="mc-search-icon" />
-                <input type="text" placeholder="Search my courses..." />
+                <input
+                  type="text"
+                  placeholder="Search my courses..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               <div className="mc-sort">
-                <span>Sort by: Recent</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="recent">Sort by: Recent</option>
+                  <option value="title">Title (A–Z)</option>
+                  <option value="progress">Progress</option>
+                </select>
                 <ChevronDown size={16} />
               </div>
             </div>
@@ -143,9 +117,15 @@ export default function MyCourses() {
               <p className="mc-empty">Loading your courses...</p>
             ) : error ? (
               <p className="mc-empty">{error}</p>
+            ) : displayedCourses.length === 0 ? (
+              <p className="mc-empty">
+                {searchTerm
+                  ? "No courses match your search."
+                  : "You haven't enrolled in any courses yet."}
+              </p>
             ) : (
               <ul className="mc-course-list">
-                {courses.map((course) => (
+                {displayedCourses.map((course) => (
                   <li className="mc-course-card" key={course.id}>
                     <img
                       src={course.image}
@@ -181,23 +161,6 @@ export default function MyCourses() {
 
           {/* Sidebar */}
           <div className="mc-sidebar-col">
-            <div className="mc-panel">
-              <h2 className="mc-panel-title">Learning Summary</h2>
-              <ul className="mc-summary-list">
-                {summary.map(({ icon: Icon, value, label }) => (
-                  <li className="mc-summary-item" key={label}>
-                    <span className="mc-summary-icon">
-                      <Icon size={18} />
-                    </span>
-                    <div>
-                      <p className="mc-summary-value">{value}</p>
-                      <p className="mc-summary-label">{label}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
             <div className="mc-panel mc-keep-learning">
               <h2 className="mc-panel-title">Keep Learning!</h2>
               <p className="mc-keep-learning-text">

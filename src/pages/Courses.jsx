@@ -4,13 +4,7 @@ import { Search, Star, ChevronDown } from "lucide-react";
 import api from "../services/api";
 import "../pages/courses.css";
 
-const CATEGORIES = [
-  "Cream Making",
-  "Soap Making",
-  "Perfume Making",
-  "Baking",
-  "Chemical Making",
-];
+const CATEGORIES = ["Cream Making", "Soap Making", "Perfume Making"];
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
@@ -377,7 +371,7 @@ function CourseCard({ course }) {
           </span>
 
           <span className="course-card__price">
-            ${(course.price || 0).toFixed(2)}
+            ₦{(course.price || 0).toFixed(2)}
           </span>
         </div>
       </div>

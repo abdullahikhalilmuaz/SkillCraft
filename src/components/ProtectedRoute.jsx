@@ -9,7 +9,14 @@ export default function ProtectedRoute({ roles }) {
   const user = getCurrentUser();
 
   if (roles && !roles.includes(user?.role)) {
-    return <Navigate to="/" replace />;
+    // Send the user to their own dashboard instead of the landing page
+    if (user?.role === "admin")
+      return <Navigate to="/admin/dashboard" replace />;
+    if (user?.role === "tutor")
+      return <Navigate to="/tutor/dashboard" replace />;
+    if (user?.role === "student")
+      return <Navigate to="/student/dashboard" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
