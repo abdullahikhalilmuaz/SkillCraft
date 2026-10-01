@@ -17,7 +17,12 @@
   --radius-sm: 10px;
   --shadow-card: 0 4px 24px rgba(147, 51, 234, 0.08);
 
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--ink-900);
   background: #f8f9fc;
   min-height: 100vh;
@@ -143,7 +148,9 @@
   justify-content: center;
   padding: 8px;
   border-radius: 10px;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 .ad-icon-btn:hover {
   background: var(--purple-50);
@@ -287,7 +294,9 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .ad-user-chip:hover {
   background: var(--purple-50);
@@ -605,7 +614,9 @@
   font-family: inherit;
   color: var(--ink-900);
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   background: var(--white);
 }
 
@@ -634,7 +645,9 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-card);
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .ad-category-card:hover {
@@ -811,8 +824,16 @@
   justify-content: space-between;
   text-align: center;
   background:
-    radial-gradient(circle at 15% 10%, rgba(147, 51, 234, 0.06), transparent 40%),
-    radial-gradient(circle at 85% 90%, rgba(147, 51, 234, 0.06), transparent 40%);
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(147, 51, 234, 0.06),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 90%,
+      rgba(147, 51, 234, 0.06),
+      transparent 40%
+    );
 }
 
 .cert-corner {
@@ -821,10 +842,30 @@
   height: 60px;
   border: 2px solid #9333ea;
 }
-.cert-corner--tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
-.cert-corner--tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
-.cert-corner--bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
-.cert-corner--br { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+.cert-corner--tl {
+  top: 12px;
+  left: 12px;
+  border-right: none;
+  border-bottom: none;
+}
+.cert-corner--tr {
+  top: 12px;
+  right: 12px;
+  border-left: none;
+  border-bottom: none;
+}
+.cert-corner--bl {
+  bottom: 12px;
+  left: 12px;
+  border-right: none;
+  border-top: none;
+}
+.cert-corner--br {
+  bottom: 12px;
+  right: 12px;
+  border-left: none;
+  border-top: none;
+}
 
 .cert-logo {
   display: flex;
@@ -834,7 +875,9 @@
   color: #1f1329;
   font-size: 20px;
 }
-.cert-logo-mark { color: #7e22ce; }
+.cert-logo-mark {
+  color: #7e22ce;
+}
 
 .cert-title-block {
   display: flex;
@@ -955,8 +998,14 @@
   letter-spacing: 2px;
   text-transform: uppercase;
 }
-.cert-status-badge--active { background: #dcfce7; color: #16a34a; }
-.cert-status-badge--revoked { background: #fee2e2; color: #dc2626; }
+.cert-status-badge--active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.cert-status-badge--revoked {
+  background: #fee2e2;
+  color: #dc2626;
+}
 
 /* ===== Print Rules ===== */
 @media print {
@@ -1018,8 +1067,12 @@
     animation: adFadeIn 0.2s ease;
   }
   @keyframes adFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .ad-mobile-hamburger {
@@ -1215,4 +1268,8 @@
   .cert-logo {
     font-size: 16px;
   }
+}
+
+.ad-sidebar {
+  display: flex !important;
 }
