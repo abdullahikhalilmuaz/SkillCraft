@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import "../styles/studentlayout.css";
 import { logout, getCurrentUser } from "../services/authService";
+import NotificationBell from "../components/NotificationBell";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/student/dashboard" },
@@ -121,6 +122,7 @@ export default function StudentLayout() {
         <header className="sl-topbar">
           <div className="sl-topbar-spacer" />
           <div className="sl-topbar-right">
+            <NotificationBell />
             <Link to="/student/settings" className="sl-user-chip">
               <img
                 src={

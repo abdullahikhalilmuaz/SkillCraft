@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import api from "../../services/api";
 import { getCurrentUser } from "../../services/authService";
+import NotificationBell from "../../components/NotificationBell";
 
 const navItems = [
   {
@@ -384,10 +385,7 @@ export default function StudentDashboard() {
             <button className="sd-icon-btn" aria-label="Search">
               <Search size={18} />
             </button>
-            <button className="sd-icon-btn" aria-label="Notifications">
-              <Bell size={18} />
-              <span className="sd-notif-dot" />
-            </button>
+            <NotificationBell />
             <Link to="/student/profile" className="sd-user-chip">
               <img
                 src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=100&h=100&fit=crop"

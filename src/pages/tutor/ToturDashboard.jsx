@@ -5,6 +5,7 @@ import { Bell, ClipboardList, Users, CheckSquare, Star } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import api from "../../services/api";
 import { getCurrentUser } from "../../services/authService";
+import NotificationBell from "../../components/NotificationBell";
 
 const recentCourses = [
   {
@@ -163,10 +164,7 @@ export default function TutorDashboard() {
           <Link to="/register" className="td-btn td-btn--primary">
             Sign Up
           </Link>
-          <button className="td-icon-btn" aria-label="Notifications">
-            <Bell size={18} />
-            <span className="td-notif-dot" />
-          </button>
+          <NotificationBell />
           <img
             className="td-avatar"
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"

@@ -1,0 +1,171 @@
+/* =========================================
+   Notification Bell
+========================================= */
+
+.nb-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nb-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #4b5563;
+  transition: background 0.2s ease;
+}
+.nb-btn:hover {
+  background: #f3f4f6;
+}
+
+.nb-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  /* Optional: Add a subtle pulse animation for the red dot */
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.nb-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 380px; /* Slightly wider */
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.nb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+.nb-header span:first-child {
+  font-weight: 700;
+  color: #111827;
+  font-size: 15px;
+}
+.nb-count {
+  background: #ede9fe;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.nb-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.nb-empty {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* --- Notification Items --- */
+.nb-item {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  /* Add a subtle purple left border for unread */
+  border-left: 3px solid transparent;
+}
+.nb-item:hover {
+  background: #f9fafb;
+}
+.nb-item:last-child {
+  border-bottom: none;
+}
+
+.nb-item-title {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.nb-item-msg {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.nb-item-meta {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+/* --- Read vs Unread States --- */
+.nb-item:not(.nb-item--read) {
+  background: #fdfcff;
+  border-left-color: #7c3aed; /* Purple line indicates unread */
+}
+.nb-item:not(.nb-item--read) .nb-item-title {
+  color: #111827;
+}
+
+.nb-item--read {
+  background: #ffffff;
+  opacity: 0.75;
+}
+.nb-item--read .nb-item-title {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 480px) {
+  .nb-dropdown {
+    position: fixed;
+    top: 70px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+}

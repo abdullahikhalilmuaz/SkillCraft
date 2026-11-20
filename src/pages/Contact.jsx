@@ -16,17 +16,17 @@ const contactInfo = [
   {
     icon: Mail,
     title: "Email Us",
-    detail: "support@skillcraft.com",
+    detail: "sulaimanaliyubkr@gmail.com",
   },
   {
     icon: Phone,
     title: "Call Us",
-    detail: "+1 (555) 123-4567",
+    detail: "+234 (901) 684-0004",
   },
   {
     icon: MapPin,
     title: "Visit Us",
-    detail: "123 Craft Lane, New York, NY",
+    detail: "Sabon Titin Kwado, Layin High Tension",
   },
   {
     icon: Clock,
@@ -219,7 +219,7 @@ export default function Contact() {
               <h3>Our Location</h3>
               <div className="ct-map-placeholder">
                 <MapPin size={28} />
-                <span>123 Craft Lane, New York, NY</span>
+                <span>Sabon Titin Kwado, Layin High Tension</span>
               </div>
             </div>
           </div>

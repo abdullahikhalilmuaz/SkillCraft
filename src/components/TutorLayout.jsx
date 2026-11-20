@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import "../styles/tutorlayout.css";
 import { logout, getCurrentUser } from "../services/authService";
+import NotificationBell from "../components/NotificationBell";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/tutor/dashboard" },
@@ -111,6 +112,7 @@ export default function TutorLayout() {
         <header className="tl-topbar">
           <div className="tl-topbar-spacer" />
           <div className="tl-topbar-right">
+            <NotificationBell />
             <Link to="/tutor/settings" className="tl-user-chip">
               <img
                 src={
