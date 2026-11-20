@@ -8,7 +8,6 @@
   align-items: center;
 }
 
-/* --- Bell Button --- */
 .nb-btn {
   position: relative;
   background: transparent;
@@ -27,7 +26,6 @@
   background: #f3f4f6;
 }
 
-/* --- Red Dot --- */
 .nb-dot {
   position: absolute;
   top: 8px;
@@ -37,14 +35,30 @@
   background-color: #ef4444;
   border-radius: 50%;
   border: 2px solid #fff;
+  /* Optional: Add a subtle pulse animation for the red dot */
+  animation: pulse-dot 2s infinite;
 }
 
-/* --- Dropdown Container --- */
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
 .nb-dropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 360px;
+  width: 380px; /* Slightly wider */
   background: #ffffff;
   border-radius: 12px;
   box-shadow:
@@ -57,7 +71,6 @@
   flex-direction: column;
 }
 
-/* --- Dropdown Header --- */
 .nb-header {
   display: flex;
   align-items: center;
@@ -80,7 +93,6 @@
   border-radius: 9999px;
 }
 
-/* --- Dropdown Body (Scrollable) --- */
 .nb-body {
   max-height: 400px;
   overflow-y: auto;
@@ -100,6 +112,8 @@
   border-bottom: 1px solid #f3f4f6;
   transition: background 0.2s ease;
   cursor: pointer;
+  /* Add a subtle purple left border for unread */
+  border-left: 3px solid transparent;
 }
 .nb-item:hover {
   background: #f9fafb;
@@ -127,9 +141,18 @@
   font-size: 11px;
 }
 
-/* --- Read State --- */
+/* --- Read vs Unread States --- */
+.nb-item:not(.nb-item--read) {
+  background: #fdfcff;
+  border-left-color: #7c3aed; /* Purple line indicates unread */
+}
+.nb-item:not(.nb-item--read) .nb-item-title {
+  color: #111827;
+}
+
 .nb-item--read {
-  background: #f9fafb;
+  background: #ffffff;
+  opacity: 0.75;
 }
 .nb-item--read .nb-item-title {
   color: #6b7280;
